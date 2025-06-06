@@ -1,6 +1,7 @@
-# Brainstorming New Modules for ALNv2016.py
+# Brainstorming New Modules for ALNv2017.py
+## These will be added into `ALNv2018-ALNv2019`
 
-Based on the existing structure and capabilities of `ALNv2016.py`, here are some potential new modules to consider:
+Based on the existing structure and capabilities of `ALNv2017.py`, here are some potential new modules to consider:
 
 ## Networking & Communication
 
