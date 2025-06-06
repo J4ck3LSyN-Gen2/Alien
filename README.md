@@ -1,9 +1,8 @@
 # Alien
 ![HEAD](https://github.com/J4ck3LSyN-Gen2/Alien/blob/main/src/imgs/alien.jpg)
-# Alien Framework (ALNv2017)
+# Alien Framework (ALNv2017.py)
 
 [![Python Version](https://img.shields.io/badge/python-3.x-blue.svg)](https://www.python.org/)
-<!-- Add other relevant badges: license, build status, etc. -->
 
 ## Overview
 
@@ -85,7 +84,7 @@ The Alien Framework is composed of several specialized modules:
         *   Example: `git clone https://github.com/00xBAD/kali-wordlists.git`
     *   **FFUF (Optional):** If you plan to extend `DIRBUSTER` to use FFUF.
         *   Example: `git clone https://github.com/ffuf/ffuf.git`
-    *   **WSL (Windows Only):** For `WSL` module functionality, WSL must be installed and configured (e.g., `wsl --install kali-linux`).
+    *   **WSL (Windows Only):** For `WSL` module functionality, WSL must be installed and configured (e.g., `wsl --install kali-linux`). 
 
 ## Installation
 
