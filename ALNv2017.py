@@ -1,4 +1,4 @@
-#!C:\Users\jacka\AppData\Local\Microsoft\WindowsApps\python.EXE
+#!C:\Users\<username>\AppData\Local\Microsoft\WindowsApps\python.EXE
 #!/usr/bin/env python
 ### Importation ###
 import time, os, sys, base64, binascii, getpass, json, sqlite3, asyncio
