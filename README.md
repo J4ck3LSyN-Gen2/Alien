@@ -233,96 +233,65 @@ alien.logPipe("MyScript", "Script execution finished.")
 ```
 Text User Interface (TUI)
 
-Launch the TUI by running python ALNv2018.py without arguments.
+### Launch the TUI by running python ALNv2018.py without arguments.
+* Interactive Commands: Type commands directly (e.g., `NMAP.scan "127.0.0.1" ports=[80,22]`).
+* Help: Use `help` for general commands or `help <MODULE.METHOD>` for specific help on how to use a module's method.
+* Suggestions & History: Use `Tab` for autocompletion and `Up/Down arrows` for command history, streamlining your workflow.
+* Session Variables: Use `set var_name value` and `env` to manage session variables, useful for storing and reusing data across commands.
+* Conditional Logic: Employ `if $var == "val" { COMMAND } else { OTHER_COMMAND }` for dynamic command execution based on session variables.
+* ATLAS Chat: Prefix your input with atlas: (or your configured prefix) to engage in a contextual chat with the ATLAS AI.
 
-    Interactive Commands: Type commands directly (e.g., NMAP.scan "127.0.0.1" ports=[80,22]).
-
-    Help: Use help for general commands or help <MODULE.METHOD> for specific help on how to use a module's method.
-
-    Suggestions & History: Use Tab for autocompletion and Up/Down arrows for command history, streamlining your workflow.
-
-    Session Variables: Use set var_name value and env to manage session variables, useful for storing and reusing data across commands.
-
-    Conditional Logic: Employ if $var == "val" { COMMAND } else { OTHER_COMMAND } for dynamic command execution based on session variables.
-
-    ATLAS Chat: Prefix your input with atlas: (or your configured prefix) to engage in a contextual chat with the ATLAS AI.
-
-Command Line Interface (CLI)
-
-Execute Alien methods non-interactively with a powerful argument parser, ideal for scripting and automation.
-
-Syntax:
-python ALNv2018.py <MODULE> <METHOD> [options...]
+### Command Line Interface (CLI)
+#### Execute Alien methods non-interactively with a powerful argument parser, ideal for scripting and automation.
+Syntax:`python ALNv2018.py <MODULE> <METHOD> [options...]`
 
 Example: Get Alien configuration value
-Bash
-
+```Bash
 python ALNv2018.py CORE getConfigureValue --path-string "logPipe-configure.verbose"
-
+```
 Example: Perform a Shodan host lookup (requires Shodan API key configured in ALNv2018.py)
-Bash
-
+```Bash
 python ALNv2018.py SHODAN host --target-ip "1.1.1.1" --history false
-
+```
 Output will be in JSON format, making it easy to parse with other tools.
-
-Configuration
+### Configuration
 
 The Alien Framework uses an internal dictionary self.configure for managing settings for its various modules. This centralized approach allows for flexible runtime customization.
-
-    Accessing Configuration: Use alien.getConfigureValue("path.to.key").
-
-    Modifying Configuration: Use alien.setConfigureValue("path.to.key", new_value).
+* Accessing Configuration: Use `alien.getConfigureValue("path.to.key")`.
+* Modifying Configuration: Use `alien.setConfigureValue("path.to.key", new_value)`.
 
 Key configuration sections include:
+* logPipe-configure: Controls logging behavior (verbosity, file output, formatting).
+* ollama-configure: Paths to the Ollama executable.
+* atlas-configure: Ollama API URL, default models for ATLAS tasks.
+* shodan-configure: Shodan API key.
+* nmapPortScanner-configure: Default Nmap arguments and ports.
+* browser-configure: Settings for the Selenium-based BROWSER module, including the path to the WebDriver executable, browser type (chrome/firefox), and headless mode.
+* api-configure: Settings for the API module, such as the listening host, port, and SSL certificate paths.
 
-    logPipe-configure: Controls logging behavior (verbosity, file output, formatting).
-
-    ollama-configure: Paths to the Ollama executable.
-
-    atlas-configure: Ollama API URL, default models for ATLAS tasks.
-
-    shodan-configure: Shodan API key.
-
-    nmapPortScanner-configure: Default Nmap arguments and ports.
-
-    browser-configure: Settings for the Selenium-based BROWSER module, including the path to the WebDriver executable, browser type (chrome/firefox), and headless mode.
-
-    api-configure: Settings for the API module, such as the listening host, port, and SSL certificate paths.
-
-    And many more specific to each module, allowing granular control over Alien's operations.
-
+And many more specific to each module, allowing granular control over Alien's operations.
 Review the __init__ method of the Alien class in ALNv2018.py for a comprehensive list of default configurations.
 
-Logging
-
+### Logging
 Alien features a robust logging system via the logPipe method, providing detailed insights into its operations.
+* Verbosity: Controlled by `logPipe-configure.verbose`, allowing you to adjust the level of detail from minimal to verbose.
+* File Logging: Controlled by `logPipe-configure.filePipe`. Logs can be saved to a specified directory and file, with options for unique naming based on timestamp or other criteria.
+* Format: Logs are structured (typically `JSON` by default for file output) and include essential metadata such as timestamps, the source method, instance IDs, and thread/process IDs, making them easy to parse and analyze for debugging or auditing.
 
-    Verbosity: Controlled by logPipe-configure.verbose, allowing you to adjust the level of detail from minimal to verbose.
-
-    File Logging: Controlled by logPipe-configure.filePipe. Logs can be saved to a specified directory and file, with options for unique naming based on timestamp or other criteria.
-
-    Format: Logs are structured (typically JSON by default for file output) and include essential metadata such as timestamps, the source method, instance IDs, and thread/process IDs, making them easy to parse and analyze for debugging or auditing.
-
-Future Development
-
+### Future Development
 The Alien Framework is an evolving project, continuously being enhanced with new capabilities. Potential future enhancements include:
+* Enhanced BROWSER module for even more complex web automation, including advanced element interaction (e.g., complex form submissions, drag-and-drop), managing browser profiles and local storage, and handling multiple tabs/windows more efficiently.
+* Advanced network protocol clients (SNMP, SSH, FTP) for broader network interaction and analysis.
+* Deeper integration with vulnerability databases and scanning tools to provide more context-aware and automated security assessments.
+* Expanded NLP and Machine Learning capabilities within ATLAS for more sophisticated data analysis, anomaly detection, and predictive capabilities in cybersecurity contexts.
+* Enhanced system monitoring and file management utilities to provide comprehensive oversight and control over the operating environment.
+* Implement a way for `ATLAS` to execute commands and get the results, fully automating tests (In Development ALNv2019.py)
 
-    Enhanced BROWSER module for even more complex web automation, including advanced element interaction (e.g., complex form submissions, drag-and-drop), managing browser profiles and local storage, and handling multiple tabs/windows more efficiently.
-
-    Advanced network protocol clients (SNMP, SSH, FTP) for broader network interaction and analysis.
-
-    Deeper integration with vulnerability databases and scanning tools to provide more context-aware and automated security assessments.
-
-    Expanded NLP and Machine Learning capabilities within ATLAS for more sophisticated data analysis, anomaly detection, and predictive capabilities in cybersecurity contexts.
-
-    Enhanced system monitoring and file management utilities to provide comprehensive oversight and control over the operating environment.
-
-Contributing
+### Contributing
 
 Currently, the Alien Framework is primarily a solo project. However, feedback, bug reports, and well-structured feature requests are genuinely welcome as contributions to its development. Please open an issue on the GitHub repository for discussions or to propose enhancements.
 
-License
+### License
 
 Copyright © 2025 JackalSyn Ind.
 
