@@ -8450,7 +8450,7 @@ class Alien:
             "gui-configure":{},
             "tui-configure":{
                 "startNoARgV":1,
-                "useBorder": 0
+                "useBorder": 1
             },
             "api-configure":{
                 "hostPort":8888,
