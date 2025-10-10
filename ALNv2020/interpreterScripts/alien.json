@@ -1,0 +1,34 @@
+{
+    "metadata":{
+        "author":"J4ck3LSyN",
+        "title":"alien",
+        "description":"The centralized alien script from developer to user.",
+        "version":"0.1"
+    },
+    "classes":{
+        "alien":{
+            "className":"alien",
+            "classVariables":{},
+            "constructor":{
+                "parameters":[
+                    {"name":"self"},
+                    {"name":"name","default":{"type":"literal","value":"alien"}}
+                ],
+                "body":[
+                    {
+                        "type":"import",
+                        "moduleName":"io"
+                    },
+                    {
+                        "type":"import",
+                        "moduleName":"variables"
+                    }
+                ]
+            },
+            "methods":{}
+        }
+    },
+    "functions":{},
+    "globals":{},
+    "inline":[]
+}

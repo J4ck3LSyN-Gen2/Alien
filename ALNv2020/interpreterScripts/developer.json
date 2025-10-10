@@ -1,0 +1,28 @@
+{
+    "metadata": {
+        "author": "J4ck3LSyN",
+        "title": "Developement File...",
+        "version": "0.0.0",
+        "description": "...",
+        "dependencies": []
+    },
+    "functions": {
+        "main":{
+            "parameters":[],
+            "body":[
+                {"type":"call","functionName":"io.print","arguments":[{"type":"literal","value":"test"}]}
+            ]
+        }
+    },
+    "classes": {},
+    "globals": {
+        "bannerOpen":"*-- ",
+        "bannerClose":" --*"
+    },
+    "inline": [
+        {"type":"import","moduleName":"io"},
+        {"type":"import","moduleName":"variables"},
+        {"type":"import","moduleName":"proc"},
+        {"type":"import","moduleName":"time"}
+    ]
+}

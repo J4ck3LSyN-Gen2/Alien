@@ -1,0 +1,8 @@
+requests
+huffman
+shodan
+wikipedia
+psutil
+cryptography
+beautifulsoup4
+donut
