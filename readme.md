@@ -2,7 +2,7 @@
 
 The alien framework is a modular toolkit centralized around a powerfull JSON-based interpreter. It is engineered for a wide array of software engineering and cybersecurity-related tasks, enabling the execution of complex logic operations with
 the capabilities of library importation (alien/pythonic), theading, LLM(ATLAS) ollama
-communications, low-level memory/process management and different redteam(offsec) tools and network based operations.
+communications, low-level memory/process management, different redteam(offsec) tools and network based operations.
 
 ## Index
 
@@ -1025,4 +1025,5 @@ if __name__ == "__main__":
     # Clean up
     pH.removeProcess("exampleThread")
 ```
+
 
