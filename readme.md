@@ -156,7 +156,7 @@ If given as a `File Name` it will attempt to file the file inside of the `curren
     1. alienPythonicExample.py
     2. helloworld.json
 
-    Where bother are different forms of libraries that can be imported, I will add more to them as time goes on.
+    Where both are different forms of libraries that can be imported, I will add more to them as time goes on.
 
 * **ALNv2020/interpreterScripts/**
 
@@ -1025,6 +1025,7 @@ if __name__ == "__main__":
     # Clean up
     pH.removeProcess("exampleThread")
 ```
+
 
 
 
