@@ -38,7 +38,7 @@ pip install -r requirements.txt
 py -m install -r requirements.txt
 ```
 
-__NOTE :__ The current of alien is built in `python 3.14`
+__NOTE :__ The current version of alien is built in `python 3.14`
 
 ## Usage
 
@@ -1025,3 +1025,4 @@ if __name__ == "__main__":
     # Clean up
     pH.removeProcess("exampleThread")
 ```
+
