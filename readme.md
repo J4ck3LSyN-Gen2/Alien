@@ -34,7 +34,6 @@ __NOTE__ I highly recommend useing the index and making it good practice. (saves
 Module installation:
 
 ```markdown
-pip install -r requirements.txt
 py -m install -r requirements.txt
 ```
 
@@ -1034,3 +1033,4 @@ if __name__ == "__main__":
     # Clean up
     pH.removeProcess("exampleThread")
 ```
+
