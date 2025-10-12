@@ -1,71 +1,35 @@
 {
-  "metadata": {
-    "author": "J4ck3LSyN",
-    "title": "benchmark",
-    "version": "0.0.1",
-    "description": "Used for benchmarking alien.",
-    "dependencies": []
-  },
-  "functions": {
-    "main": {
-      "parameters": [],
-      "body": [
-        {"type":"assign","target":{"name":"start"},"value":{"type":"call","functionName":"time.asciiTime"}},
-        {"type":"call","functionName":"io.print","arguments":[{"type":"formatString","value":{"type":"literal","value":"* Time Started: [%(start)]"}}]},
-        {"type":"assign","target":{"name":"openBanner"},"value":{"type":"literal","value":"*--- "}},
-        {"type":"assign","target":{"name":"closeBanner"},"value":{"type":"literal","value":" ---*"}},
-        {"type":"call","functionName":"io.print","arguments":[{"type":"formatString","value":{"type":"literal","value":"%(openBanner)Starting Alien Benchmark%(closeBanner)"}}]},
-        {"type": "assign","target": { "name": "testsInstance" },"value": { "type": "new", "className": "tests" }},
-        {"type": "methodCall","target": { "type": "varRef", "name": "testsInstance" },"methodName": "main"}
-      ]
-    }
-  },
-  "classes": {
-    "tests":{
-        "className":"tests",
-        "classVariables":{},
-        "constructor":{
-            "parameters":[{"name":"self"},{"name":"name","default":{"type":"literal","value":"tests"}}],
-            "body":[
-                {"type":"return","value":{"type":"varRef","name":"self"}}
-            ]
-        },
-        "methods":{
-            "main":{
-                "parameters":[{"name":"self"}],
-                "body":[
-                    {"type":"call","functionName":"io.print","arguments":[{"type":"literal","value":"*--- Executing tests.main ---*"}]},
-                    {"type": "methodCall","target": {"type": "varRef","name": "self"},"methodName": "rangeTest"}
-                ]
-            },
-            "rangeTest":{
-                "parameters":[{"name":"self"}],
-                "body":[
-                  {"type":"call","functionName":"io.print","arguments":[{"type":"literal","value":"Testing Range Evaluation..."}]},
-                  {
-                    "type":"for",
-                    "iterable":{
-                      "type":"range",
-                      "end":5
-                    },
-                    "loopVar":"i",
-                    "body":[
-                      {
-                        "type":"call",
-                        "functionName":"io.print",
-                        "arguments":[{"type":"varRef", "name":"i"}]
-                      }
-                    ]
-                  }
-                ]
-            }
-        }
-    }
-  },
-  "globals": {},
-  "inline": [
-    {"type":"import","moduleName":"io"},
-    {"type":"import","moduleName":"time"},
-    {"type":"import","moduleName":"variables"}
-  ]
+    "metadata": {
+        "author": "J4ck3LSyN",
+        "title": "Used to benchmark certain alien operations.",
+        "version": "0.0.1",
+        "description": "**Under Construction**",
+        "dependencies": []
+    },
+    "functions": {
+      "main":{
+        "parameters":[],
+        "body":[
+          {"type":"for","iterable":{"type":"literal","value":[1,2,3,4,5]},"loopVar":"i","body":[
+            {"type":"call","functionName":"io.print","arguments":[
+              {"type":"varRef","name":"i"},
+              {"type":"exprString","target":{"value":" :: %{isoTime} :: %{asciiTime}"},"expressions":{
+                "isoTime":{"type":"call","functionName":"time.time","arguments":[]},
+                "asciiTime":{"type":"call","functionName":"time.asciiTime","arguments":[]}
+              }}
+            ]}
+          ]}
+        ]
+      }
+    },
+    "classes": {},
+    "globals": {
+      "bannerOpen":"*-- ",
+      "bannerClose":" --*"
+    },
+    "inline": [
+      {"type":"import","moduleName":"io"},
+      {"type":"import","moduleName":"time"},
+      {"type":"import","moduleName":"variables"}
+    ]
 }

@@ -368,9 +368,13 @@ class Alien:
                 "",
                 "\tInterpreter:",
                 "\t\tFile Execution:",
-                "\t\tUsage: py -m ALNv2020 intr 'targetFile.json' <args>,...",
+                "\t\tUsage: py -m ALNv2020 intr <args> 'targetFile.json' <args> <kwargs>",
+                "",
+                "\t\tIndepth Logging (slows performance):",
+                "\t\tUsage: py -m ALNv2020 intr -lP <args> 'targetFile.json' <args> <kwargs>",
+                "",
                 "\t\tNew Projects:",
-                "\t\tUsage: py -m ALNv2020 intr -n 'targetFile.json'",
+                "\t\tUsage: py -m ALNv2020 intr -n <args> 'targetFile.json' <args> <kwargs>",
                 str(self.spacer)
             ]),
             "debugLevel":"\n".join([
@@ -412,7 +416,15 @@ class Alien:
             "interpreterNew":"\n".join([
                 str(self.spacer),
                 "Creates a `raw program` for alien inside of `ALNv2020/interpreterScripts/`."
-                "Usage: `py -m ALNv2020 intr -n 'scriptName.json'`"
+                "Usage: `py -m ALNv2020 intr -n 'scriptName.json'`",
+                str(self.spacer)
+            ]),
+            "interpreterLogPipe":"\n".join([
+                str(self.spacer),
+                "\tAllows for the `logPipe` to work. (The central point for all logging!)",
+                "\tNote:",
+                "\t\tWhen given operations will run slowly, this is a temporary patch for smoother operations.",
+                str(self.spacer)
             ])
         }
         self.centralArgParser = argparse.ArgumentParser(
@@ -435,6 +447,9 @@ class Alien:
         ### intr, interpreter operations
         self.intrSubparsers = self.execParser.add_parser(
             "intr",help="",formatter_class=argparse.RawTextHelpFormatter
+        )
+        self.intrSubparsers.add_argument(
+            "-lP",'--logPipe',help=self.descriptions['interpreterLogPipe'],action="store_true"
         )
         self.intrSubparsers.add_argument(
             "-n","--new",help=self.descriptions['interpreterNew'],action="store_true"
@@ -527,16 +542,17 @@ class Alien:
         """
         ALNv2020 '<file.json>' <args> <kwargs>
         """
-        self.iT = interpreterHandle(logger=self.logger)
         if not self.parsedArgs.execFile:
             eM = f"No file for execution: {str(self.parsedArgs)}."
             self.logPipe("_intr",eM,l=2)
             raise RuntimeError(eM)
+        self.iT = interpreterHandle(logger=self.logger)
+        if self.parsedArgs.logPipe:
+            self.iT.config['allowLogPipe']=True
         if self.parsedArgs.new:
             self._writeRawFile(self.parsedArgs.execFile)
             return
         self.logPipe("_intr",f"Attempting to load file '{str(self.parsedArgs.execFile)}'...",f=self.config['verbosity'])
-        self.iT = interpreterHandle(logger=self.logger)
         try:
             # Only load if the --new flag wasn't used
             if not self.parsedArgs.new:

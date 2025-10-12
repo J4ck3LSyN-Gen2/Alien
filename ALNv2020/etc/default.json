@@ -47,6 +47,7 @@
                 "mainEntryArgs":[],
                 "mainEntryKeywordArgs":{},
                 "scriptPath":"ALNv2020\\interpreterScripts\\",
+                "allowLogPipe":false,
                 "useScriptPath":true,
                 "setMetaInGlobal":true,
                 "keyMap":{

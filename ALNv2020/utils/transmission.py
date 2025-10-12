@@ -7,9 +7,64 @@ import select
 import queue
 from typing import Any, Dict, Optional, Callable, List
 import psutil # type: ignore
+import pycurl # type: ignore
+from io import BytesIO, StringIO
+import certifi
 
 __vession__ = "0.0.3"
 
+class curl:
+
+    """
+    *-- cURL Functions --*
+    """
+
+    def __init__(self,
+                 logger:Callable=None,
+                 confHandle:Callable=None):
+        self.config = {}
+        self.logger = logger 
+        self.confHandle = confHandle
+
+    ## Requests
+    # basic
+    def _basicGet(self,url:str):
+        """"""
+        c = pycurl.Curl()
+        c.setopt(pycurl.URL,str(url))
+        buffer = BytesIO()
+        c.setopt(pycurl.WRITEDATA,buffer)
+        c.setopt(pycurl.CAINFO,certifi.where())
+        retVal = None
+        failed = None
+        try:
+            c.perform()
+            body = buffer.getvalue()
+            respCode = c.getinfo(pycurl.RESPONSE_CODE)
+            retVal = {
+                "status":respCode,
+                "body":body
+            }
+        except pycurl.error as E:
+            eM = f"pycURL exception('{str(url)}'): {str(E)}."
+            self.logPipe("_basicGet",eM,l=2)
+            failed = eM
+        finally:
+            c.close()
+        if not retVal:
+            raise Exception(failed if failed else "Unkonwn!!")
+        return retVal
+    
+    # _advancedGet(self,url:str,headers:List[str],timeout:int=None)
+    # _postRequestData(self,url:str,header:List[str],data:Dict[str,Any],timeout:int=None)
+    # _downloadFile(self,url:str,outputDir:str,outputName:str=None,timeout:int=None)
+    # _resolveDNS
+    # _proxyGet
+
+    ## Main
+    # Log pipe
+    def logPipe(self,r,m,l=None,e=None,f=False):
+        if self.logger: self.logger.logPipe(r,m,loggingLevel=l,extendedContext=e,forcePrintToScreen=f)
 
 class nmap:
     

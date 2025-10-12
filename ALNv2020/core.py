@@ -18,6 +18,7 @@ import binascii
 import shutil
 import importlib
 import py_compile
+import atexit # type: ignore
 
 # Interpreter standard library imports
 
@@ -1130,7 +1131,7 @@ class interpreterHandle:
             "scriptPath":"ALNv2020\\interpreterScripts\\",
             "useScriptPath":True,
             "setMetaInGlobal":True,
-            "allowLogPipe":True,
+            "allowLogPipe":False,
             "debugMode":False,
             "enableVerboseLogging":False
         }
@@ -1169,6 +1170,10 @@ class interpreterHandle:
             self.huffman,
             self.cypher,
             logger=self.logger
+        )
+        self.curl = transmission.curl(
+            logger=self.logger,
+            confHandle=self.confHandle
         )
         # web
         # self.web = transmission.web(
@@ -3977,6 +3982,10 @@ class interpreterHandle:
             # Uses a socket object to connect to a host,port to test port availability
             "connectEX":lambda socketObject, host, port: self.sock._connectEX(socketObject,host,port)
         }
+        # curl
+        stdlib['curl'] = {
+            "basicGet":lambda url: self.curl._basicGet(url)
+        }
         # process
         stdlib['proc'] = {
             # Executes a shell command (no thread, linear)
@@ -4207,7 +4216,7 @@ class interpreterHandle:
         
         - Added `enableVerboseLogging` in hopes to assist in further optimization.
         """
-        self.logger.logPipe(r,m,loggingLevel=l,extendedContext=e,forcePrintToScreen=f)
+        if self.config['allowLogPipe']: self.logger.logPipe(r,m,loggingLevel=l,extendedContext=e,forcePrintToScreen=f)
 
 class configHandle:
     
@@ -4457,7 +4466,8 @@ class loggerHandle:
             'fileIndentLevel':2, # JSON indent level
             'contextKeyMessageFormat':': ', # _appendExtendedContext Key:message format
             'contextCompileMessageFormat':', ', # _appendExtendedContext finalKeyList format
-            'loggerFormat':'[%(levelname)s] (%(asctime)s) :: %(name)s :: %(message)s' # logging format (logger)
+            'loggerFormat':'[%(levelname)s] (%(asctime)s) :: %(name)s :: %(message)s', # logging format (logger)
+            'logBufferSize':100 # Number of log entries to buffer before writing to file.
         }
         # Handle Configure Operations
         self.loggerID     = str(loggerID)
@@ -4474,10 +4484,16 @@ class loggerHandle:
             newConf = self.confHandle.index("logger")[1]
             newConf = self.confHandle.relateData(newConf,self.config)
             self.config = newConf
+        self._fileWriteLock = threading.Lock()
+        atexit.register(self.flush)
 
     ## File Functionality
     # Write Log File
-    def _fileWriteLog(self):
+    def flush(self):
+        """Alias for _fileWriteLog to be used with atexit."""
+        self._fileWriteLog(force=True)
+
+    def _fileWriteLog(self, force: bool = False):
         """
         Updates/Creates The Log File.
 
@@ -4502,6 +4518,13 @@ class loggerHandle:
 
         Returns: None
         """
+        # Only write if file piping is enabled and there's something to write, or if forced
+        if not self.config.get('filePipe') or (not self.messageList and not force):
+            return
+
+        if not self._fileWriteLock.acquire(blocking=False):
+            # If another thread is already writing, just return. The logs will be written in the next batch.
+            return
         # Get File & Path Information
         fileDir = self.config.get('filePath')
         filePath = self.config.get('fileName')
@@ -4509,42 +4532,62 @@ class loggerHandle:
         if filePipe not in [1,True]: return
         if fileDir: 
             filePath = os.path.join(fileDir,filePath)
-        existingData = []
-        # Attempt To Extract Existing Data
         try:
-            if os.path.exists(filePath) and os.path.getsize(filePath)>0:
-                # Ensure directory exists before reading
+            existingData = []
+            # Attempt To Extract Existing Data
+            try:
+                if os.path.exists(filePath) and os.path.getsize(filePath) > 0:
+                    dirName = os.path.dirname(filePath)
+                    if dirName:
+                        os.makedirs(dirName, exist_ok=True)
+                    with open(str(filePath), 'r') as f:
+                        existingData = json.load(f)
+            except (IOError, json.JSONDecodeError) as E:
+                if self.logger:
+                    self.logger.error(f"Failed to load data from '{filePath}' due to exception: {E}... starting new log..")
+            
+            if not isinstance(existingData, list) or len(existingData) != 3:
+                existingData = [0, [], {}]
+
+            eDMessageCount, eDMessageList, eDLogStorage = existingData
+
+            # Create a local copy of messages to write so we can clear the instance ones
+            messagesToWrite = self.messageList[:]
+            storageToWrite = self.logStorage.copy()
+            countToWrite = self.messageCount
+
+            # Clear instance-level storage immediately after copying
+            self.messageList.clear()
+            self.logStorage.clear()
+            self.messageCount = 0
+
+            # Update The Data
+            updatedCount = eDMessageCount + countToWrite
+            updateMessageList = eDMessageList + messagesToWrite
+            for k, v in storageToWrite.items():
+                if k in eDLogStorage:
+                    eDLogStorage[k].extend(v)
+                else:
+                    eDLogStorage[k] = v
+            updatedLogStorage = eDLogStorage
+
+            dataToWrite = [updatedCount, updateMessageList, updatedLogStorage]
+
+            try:
                 dirName = os.path.dirname(filePath)
                 if dirName:
                     os.makedirs(dirName, exist_ok=True)
-                with open(str(filePath),'r') as f:
-                    existingData = json.load(f)
-        except (IOError,json.JSONDecodeError) as E: self.logger.error(str(f"Failed to load data from '{str(filePath)}' dut to exception: {str(E)}... starting new log.."))
-        # If Data Is Corrupt
-        if not isinstance(existingData,list) or len(existingData) != 3:
-            existingData = [0,[],{}]
-        # Unpack Existing Data
-        eDMessageCount, eDMessageList, eDLogStorage = existingData
-        # Update The Data
-        updatedCount = eDMessageCount+self.messageCount
-        updateMessageList = eDMessageList+self.messageList
-        for k, v in self.logStorage.items():
-            if k in eDLogStorage: eDLogStorage[k].extend(v)
-            else: eDLogStorage[k] = v
-        updatedLogStorage = eDLogStorage
-        # Data To Write
-        dataToWrite = [updatedCount,updateMessageList,updatedLogStorage]
-        try:
-            # Ensure directory exists before writing
-            dirName = os.path.dirname(filePath)
-            if dirName:
-                os.makedirs(dirName, exist_ok=True)
-            with open(str(filePath),'w') as f:
-                json.dump(dataToWrite,f,indent=self.config.get('fileIndentLevel'))
-            # Reset messageList and logStorage
-            self.messageList  = []
-            self.logStorage   = {}
-        except IOError as E: self.logger.error(str(f"Failed to update file '{str(filePath)}' due to IOError: {str(E)}..."))
+                with open(str(filePath), 'w') as f:
+                    json.dump(dataToWrite, f, indent=self.config.get('fileIndentLevel'))
+            except IOError as E:
+                if self.logger:
+                    self.logger.error(f"Failed to update file '{filePath}' due to IOError: {E}...")
+                # If writing fails, restore the messages to be tried again later
+                self.messageList = messagesToWrite + self.messageList
+                self.logStorage.update(storageToWrite)
+                self.messageCount += countToWrite
+        finally:
+            self._fileWriteLock.release()
 
     ## Returns
     # timestamp
@@ -4698,6 +4741,9 @@ class loggerHandle:
         # Return
         return logger
 
+    def _flush(self):
+        """"""
+        self._fileWriteLog()
     ## Main Functionality
     # Log Pipe
     def logPipe(self,
