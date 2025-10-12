@@ -6,3 +6,4 @@ psutil
 cryptography
 beautifulsoup4
 donut
+pycurl
