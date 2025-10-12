@@ -2,7 +2,7 @@
 
 The alien framework is a modular toolkit centralized around a powerfull JSON-based interpreter. It is engineered for a wide array of software engineering and cybersecurity-related tasks, enabling the execution of complex logic operations with
 the capabilities of library importation (alien/pythonic), theading, LLM(ATLAS) ollama
-communications, low-level memory/process management, different redteam(offsec) tools and network based operations.
+communications, low-level memory/process management and different redteam(offsec) tools and network based operations.
 
 ## Index
 
@@ -38,7 +38,7 @@ pip install -r requirements.txt
 py -m install -r requirements.txt
 ```
 
-__NOTE :__ The current version of alien is built in `python 3.14`
+__NOTE :__ The current of alien is built in `python 3.14`
 
 ## Usage
 
@@ -47,6 +47,8 @@ __NOTE :__ The current version of alien is built in `python 3.14`
 ### Application
 
 __NOTE__: The front end of `alien` if constantly under development and is under `constant` change, please be patient while I complete all the functionality. Some `modules` will be directly callable, however most functionality will be centralized around `py -m ALNv2020` itself.
+
+__NOTE__: When using the `intr` functionality, the `-lP,--logPipe` flag when enabled will impact performance on script execution heavily. This is due to the amount of logging performed during operations, for most instances (unless you are debugging and want deeper information), `-lP` is not needed.
 
 ```markdown
 *-- Alien Framework --*
@@ -84,9 +86,13 @@ author:  J4ck3LSyN
 
         Interpreter:
                 File Execution:
-                Usage: py -m ALNv2020 intr 'targetFile.json' <args>,...
+                Usage: py -m ALNv2020 intr <args> 'targetFile.json' <args> <kwargs>
+
+                Indepth Logging (slows performance):
+                Usage: py -m ALNv2020 intr -lP <args> 'targetFile.json' <args> <kwargs>
+
                 New Projects:
-                Usage: py -m ALNv2020 intr -n 'targetFile.json'
+                Usage: py -m ALNv2020 intr -n <args> 'targetFile.json' <args> <kwargs>
 
 --------------------------------------------------------------------------------
 ```
@@ -156,7 +162,7 @@ If given as a `File Name` it will attempt to file the file inside of the `curren
     1. alienPythonicExample.py
     2. helloworld.json
 
-    Where both are different forms of libraries that can be imported, I will add more to them as time goes on.
+    Where bother are different forms of libraries that can be imported, I will add more to them as time goes on.
 
 * **ALNv2020/interpreterScripts/**
 
@@ -256,7 +262,7 @@ __Calling Modules Methods__
 }
 ```
 
-#### Standard Libary List
+#### Libary List
 
 ```markdown
 # io
@@ -350,6 +356,9 @@ __Calling Modules Methods__
 # sock
     sock.getSocketObject
     sock.connectEX
+
+# curl
+    curl.basicGet
 
 # proc
     proc.shell
@@ -1025,7 +1034,3 @@ if __name__ == "__main__":
     # Clean up
     pH.removeProcess("exampleThread")
 ```
-
-
-
-
