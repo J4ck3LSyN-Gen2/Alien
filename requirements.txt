@@ -7,3 +7,5 @@ cryptography
 beautifulsoup4
 donut
 pycurl
+paramiko
+dotenv
