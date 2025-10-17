@@ -7,20 +7,7 @@
         "dependencies": []
     },
     "functions": {
-        "main":{
-            "parameters":[],
-            "body":[
-                {"type":"assign","target":{"name":"googleHTML"},"value":{
-                    "type":"call","functionName":"curl.basicGet","arguments":[
-                        {"type":"literal","value":"http://www.google.com"}
-                    ]
-                }},{
-                    "type":"call","functionName":"io.print","arguments":[
-                        {"type":"varRef","name":"googleHTML"}
-                    ]
-                }
-            ]
-        }
+        
     },
     "classes": {},
     "globals": {
@@ -28,10 +15,10 @@
         "bannerClose":" --*"
     },
     "inline": [
-        {"type":"import","moduleName":"io"},
-        {"type":"import","moduleName":"variables"},
-        {"type":"import","moduleName":"proc"},
-        {"type":"import","moduleName":"time"},
-        {"type":"import","moduleName":"curl"}
+        {"type":"import","moduleName":"hivemind.py"},
+        {"type":"import","moduleName":"alien"},
+        {"type":"assign","target":{"name":"iTSelf"},"value":{
+            "type":"call","functionName":"alien.getSelf","arguments":[]
+        }}
     ]
 }

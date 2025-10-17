@@ -1,6 +1,7 @@
 from typing import Any, Dict, Any, Optional, List
 import random
 import string 
+import base64
 
 __version__ = "0.0.1"
 
@@ -10,6 +11,28 @@ class variables:
 
         self.logger = logger
 
+    ## Base64
+
+    def decodeBase64(self,encodedString:str|bytes):
+        """"""
+        if not isinstance(encodedString,bytes): encodedString = str(encodedString).encode('utf-8')
+        try:
+            return base64.b64decode(encodedString).decode('utf-8')
+        except Exception as E:
+            eM = f"Unknown exception while attempting to decode '{str(encodedString)}': {str(E)}."
+            self.logPipe("decodeBase64",eM,l=2)
+            raise Exception(eM)
+
+    def encodeBase64(self,targetString:str|bytes):
+        """"""
+        if not isinstance(targetString,bytes): targetString=str(targetString).encode('utf-8')
+        try:
+            return base64.b64encode(targetString).decode('utf-8')
+        except Exception as E:
+            eM = f"Unknown exception while attempting to encode '{str(targetString)}': {str(E)}."
+            self.logPipe("encodeBase64",eM,l=2)
+            raise Exception(eM)
+    
     ## Char Map
     # Get default char map
     

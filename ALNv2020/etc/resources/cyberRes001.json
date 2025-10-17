@@ -1,0 +1,716 @@
+[
+  {
+    "name": "HackTricks",
+    "description": "A comprehensive cybersecurity knowledge base with pentesting methodologies, tools, and techniques.",
+    "url": "https://book.hacktricks.xyz/",
+    "tags": ["pentesting", "cheatsheet", "methodology", "tools", "redteam", "wiki"]
+  },
+  {
+    "name": "PayloadsAllTheThings",
+    "description": "A list of useful payloads and bypasses for Web Application Security and Pentest/CTF.",
+    "url": "https://github.com/swisskyrepo/PayloadsAllTheThings",
+    "tags": ["jack","payloads", "websec", "ctf", "cheatsheet", "exploitdev", "github"]
+  },
+  {
+    "name": "GTFOBins",
+    "description": "Curated list of Unix binaries that can be used to bypass local security restrictions in misconfigured systems.",
+    "url": "https://gtfobins.github.io/",
+    "tags": ["jack","linux", "privesc", "binary", "exploitation", "redteam", "github"]
+  },
+  {
+    "name": "RevShells.com",
+    "description": "Reverse shell generator for various platforms and listeners.",
+    "url": "https://www.revshells.com/",
+    "tags": ["reverseshell", "shell", "tools", "pentesting", "redteam", "blueteam", "generator"]
+  },
+  {
+    "name": "TryHackMe",
+    "description": "An online platform for learning cybersecurity through hands-on labs and challenges, covering various offensive and defensive security topics.",
+    "url": "https://www.tryhackme.com",
+    "tags": ["jack","tutorial", "offsec", "pentesting", "redteam", "blueteam", "purpleteam", "ctf", "koth", "cve", "openvpn", "virtualmachine", "training", "labs"]
+  },
+  {
+    "name": "HackTheBox",
+    "description": "An online cybersecurity training platform with labs, challenges, and CTFs.",
+    "url": "https://www.hackthebox.com/",
+    "tags": ["jack","platform", "ctf", "labs", "pentesting", "redteam", "blueteam", "training"]
+  },
+  {
+    "name": "VulnHub",
+    "description": "A provider of vulnerable-by-design virtual machines for practical cybersecurity training.",
+    "url": "https://www.vulnhub.com/",
+    "tags": ["jack","vms", "vulnerablemachines", "labs", "pentesting", "training", "offline"]
+  },
+  {
+    "name": "OWASP Top 10",
+    "description": "A standard awareness document for developers and web application security, representing the most critical security risks to web applications.",
+    "url": "https://owasp.org/www-project-top-ten/",
+    "tags": ["websec", "owasp", "vulnerabilities", "securityawareness", "checklist", "report"]
+  },
+  {
+    "name": "Burp Suite (PortSwigger)",
+    "description": "An integrated platform for web application security testing. Official site by PortSwigger, also featuring Web Security Academy.",
+    "url": "https://portswigger.net/burp",
+    "tags": ["websec", "tools", "pentesting", "proxy", "scanner", "portswigger", "academy"]
+  },
+  {
+    "name": "Beginner's Guide to Network Pentesting",
+    "description": "An introductory guide covering the basics of network penetration testing, methodologies, and common tools.",
+    "url": "https://www.comparitech.com/net-admin/network-penetration-testing/",
+    "tags": ["network", "pentesting", "beginner", "guide", "tutorial", "methodology"]
+  },
+  {
+    "name": "GitHub Dorking & Recon",
+    "description": "Techniques for discovering sensitive information and potential vulnerabilities on GitHub using advanced search queries.",
+    "url": "https://github.com/techgaun/github-dorks",
+    "tags": ["github", "recon", "dorking", "osint", "exploitation", "beginner", "cheatsheet"]
+  },
+  {
+    "name": "Top 100 Kali Linux Commands",
+    "description": "A curated list of essential Kali Linux commands for penetration testing and cybersecurity tasks.",
+    "url": "https://www.stationx.net/kali-linux-commands-cheat-sheet/",
+    "tags": ["kali", "linux", "commands", "cheatsheet", "pentesting", "tools"]
+  },
+  {
+    "name": "FFUF (Fuzz Faster U Fool)",
+    "description": "Official repository for FFUF, a fast web fuzzer. Includes usage examples, tips, and tricks.",
+    "url": "https://github.com/ffuf/ffuf",
+    "tags": ["jack","ffuf", "fuzzing", "websec", "tools", "pentesting", "cheatsheet", "github"]
+  },
+  {
+    "name": "THC-Hydra",
+    "description": "A very fast network logon cracker which supports numerous protocols to attack. Official GitHub repository.",
+    "url": "https://github.com/vanhauser-thc/thc-hydra",
+    "tags": ["hydra", "passwordcracking", "bruteforce", "tools", "pentesting", "github"]
+  },
+  {
+    "name": "SQLMap Wiki",
+    "description": "Official comprehensive wiki for SQLMap, an automatic SQL injection and database takeover tool.",
+    "url": "https://github.com/sqlmapproject/sqlmap/wiki",
+    "tags": ["sqlmap", "sqlinjection", "websec", "tools", "pentesting", "tutorial", "github", "wiki"]
+  },
+  {
+    "name": "Aircrack-ng Tutorials",
+    "description": "Official tutorials for using the Aircrack-ng suite for WiFi network security auditing and attacks.",
+    "url": "https://www.aircrack-ng.org/doku.php?id=tutorial",
+    "tags": ["aircrackng", "wifi", "wep", "wpa", "hacking", "pentesting", "tools", "tutorial", "official"]
+  },
+  {
+    "name": "Nmap Cheat Sheet (Official)",
+    "description": "Official Nmap quick reference guide with common commands and options.",
+    "url": "https://nmap.org/cheatsheet/html/",
+    "tags": ["nmap", "networkscanning", "portscanning", "cheatsheet", "tools", "pentesting", "official"]
+  },
+  {
+    "name": "Google Hacking Database (GHDB)",
+    "description": "A collection of Google dorks (advanced search queries) to find vulnerable systems and sensitive information, hosted by Exploit Database.",
+    "url": "https://www.exploit-db.com/google-hacking-database",
+    "tags": ["googledorking", "ghdb", "osint", "recon", "cheatsheet", "exploitdb", "dorks"]
+  },
+  {
+    "name": "Awesome Shodan Queries",
+    "description": "A curated list of Shodan search queries (dorks) for discovering internet-connected devices and services.",
+    "url": "https://github.com/jakejarvis/awesome-shodan-queries",
+    "tags": ["shodan", "dorking", "osint", "recon", "iot", "cheatsheet", "github", "queries"]
+  },
+  {
+    "name": "Total OSCP Guide (GitBook)",
+    "description": "A comprehensive guide and collection of resources for students preparing for the Offensive Security Certified Professional (OSCP) exam.",
+    "url": "https://sushant747.gitbooks.io/total-oscp-guide/content/",
+    "tags": ["oscp", "pentesting", "certification", "guide", "cheatsheet", "offensive_security", "gitbook"]
+  },
+  {
+    "name": "OSWP Notes & Tips (GitHub)",
+    "description": "Community-contributed notes, tips, and resources for the Offensive Security Wireless Professional (OSWP) certification.",
+    "url": "https://github.com/airack/OSWP-Notes",
+    "tags": ["jack","oswp", "wifi", "wireless_security", "certification", "notes", "offensive_security", "github"]
+  },
+  {
+    "name": "Professor Messer's CompTIA Security+ Training Course",
+    "description": "Free video course and study materials for the CompTIA Security+ (SY0-601) certification exam by Professor Messer.",
+    "url": "https://www.professormesser.com/security-plus/sy0-601/sy0-601-video/sy0-601-comptia-security-plus-course/",
+    "tags": ["comptiasecurityplus", "security+", "certification", "studyguide", "notes", "infosec", "video_course", "professormesser"]
+  },
+  {
+    "name": "LOLBAS Project",
+    "description": "The Living Off The Land Binaries and Scripts (LOLBAS) project documents binaries, scripts, and libraries usable for LOL techniques.",
+    "url": "https://lolbas-project.github.io/",
+    "tags": ["jack","lolbas", "windows", "redteam", "postexploitation", "evasion", "livingofftheland", "binary", "script"]
+  },
+  {
+    "name": "PentestMonkey Cheat Sheets",
+    "description": "A collection of cheat sheets for penetration testers, including reverse shells, SQL injection, and more.",
+    "url": "http://pentestmonkey.net/cheat-sheet",
+    "tags": ["jack","cheatsheet", "pentesting", "reverseshell", "sqlinjection", "tools", "redteam", "blog"]
+  },
+  {
+    "name": "MSFVenom Guide (Metasploit Unleashed)",
+    "description": "Comprehensive guide on using MSFVenom for payload generation from Offensive Security's Metasploit Unleashed.",
+    "url": "https://www.offensive-security.com/metasploit-unleashed/msfvenom/",
+    "tags": ["msfvenom", "metasploit", "payloads", "exploitdev", "cheatsheet", "redteam", "offensive_security", "guide"]
+  },
+  {
+    "name": "TheFatRat (Deprecated)",
+    "description": "An easy tool to generate backdoors and payloads, primarily for Windows. (Note: Project is deprecated)",
+    "url": "https://github.com/Screetsec/TheFatRat",
+    "tags": ["payloads", "backdoor", "rat", "windows", "tools", "deprecated", "github", "generator"]
+  },
+  {
+    "name": "Metasploit Unleashed",
+    "description": "Offensive Security's free course on the Metasploit Framework, serving as an extensive guide and reference.",
+    "url": "https://www.offensive-security.com/metasploit-unleashed/",
+    "tags": ["metasploit", "pentesting", "exploitframework", "guide", "tutorial", "tools", "redteam", "offensive_security", "course"]
+  },
+  {
+    "name": "PowerShell AMSI Bypass Techniques (GitHub)",
+    "description": "A collection of techniques and scripts for bypassing the Antimalware Scan Interface (AMSI) in PowerShell.",
+    "url": "https://github.com/S3cur3Th1sSh1t/Amsi-Bypass-Powershell",
+    "tags": ["powershell", "amsi", "bypass", "evasion", "redteam", "windows", "postexploitation", "github", "script"]
+  },
+  {
+    "name": "Windows AV Evasion (GitHub Topic)",
+    "description": "A GitHub topic page aggregating resources, tools, and techniques for Windows antivirus evasion.",
+    "url": "https://github.com/topics/av-evasion",
+    "tags": ["avevasion", "windows", "payloads", "shells", "redteam", "malwaredev", "exploitdev", "github", "topic"]
+  },
+  {
+    "name": "Ngrok for Reverse Shells (HackTricks)",
+    "description": "Using Ngrok to expose local reverse shell listeners to the internet, bypassing NAT/firewall restrictions, as documented on HackTricks.",
+    "url": "https://book.hacktricks.xyz/generic-methodologies-and-resources/basic-useful-stuff/ngrok",
+    "tags": ["ngrok", "reverseshell", "portforwarding", "bypass", "tools", "pentesting", "redteam", "hacktricks"]
+  },
+  {
+    "name": "Webhook.site",
+    "description": "An online tool to easily test, inspect, and debug HTTP webhooks and other types of requests.",
+    "url": "https://webhook.site/",
+    "tags": ["webhook", "testing", "debugging", "http", "tools", "webdev", "api", "online_tool"]
+  },
+  {
+    "name":"100+ OSINT Kali Tools",
+    "description": "A GitHub repository listing over 100 OSINT tools available or suitable for Kali Linux, aiding in open-source intelligence gathering.",
+    "url":"https://github.com/3ricVald3z/Kali-Linux-OSINT-VM",
+     "tags": ["kali", "linux", "osint", "tools", "recon", "github", "list"]
+  },
+  {
+    "name":"Doxbin Breach Data (HaveIBeenPwned)",
+    "description":"Information on the Doxbin data breach as listed on Have I Been Pwned, detailing compromised data.",
+    "url":"https://haveibeenpwned.com/Breach/Doxbin",
+    "tags":["databreach", "hibp", "osint", "doxing", "privacy"]
+  },
+  {
+    "name":"DoxBin (Home)",
+    "description":"A controversial website known for doxing. (Warning: Use with extreme caution and legally.)",
+    "url":"https://doxbin.ai/",
+    "tags":["doxing", "osint", "privacy", "controversial", "warning"]
+  },
+  {
+    "name":"Ransomware Live",
+    "description":"Real-time tracking and information on ransomware attacks and victim organizations.",
+    "url":"https://www.ransomware.live/",
+    "tags":["ransomware","osint","threat intel","misc"]
+  },
+  {
+    "name":"Censys",
+    "description":"An internet-wide scanning platform that provides data and insights on connected devices and services for security research and threat intelligence.",
+    "url":"https://censys.com/",
+    "tags":["osint","threat intel","misc"]
+  },
+  {
+    "name":"Free Certs",
+    "description":"A List Of Free Certification Resources",
+    "url":"https://github.com/cloudcommunity/Free-Certifications",
+    "tags":["resource","cert","offsec","misc"]
+  },
+  {
+    "name":"Low Level Academy",
+    "description":"Assembly & Reverse Engineering Academy",
+    "url":"https://lowlevel.academy/",
+    "tags":["resource","assembly","reverse engineering","binary exploitation","programming","misc"]
+  },
+  {
+    "name":"Live Cyber Threat Map",
+    "description":"A Live Map Of Threat (Honeypotted)",
+    "url":"https://livethreatmap.radware.com/",
+    "tags":["osint","misc"]
+  },
+  {
+    "name":"intelX",
+    "description":"Intelligence X is a search engine and data archive for open-source intelligence (OSINT) and threat intelligence, indexing darknet, public, and other sources.",
+    "url":"https://intelx.io/",
+    "tags":["osint", "threatintelligence", "searchengine", "darknet", "malware", "apt", "dataleaks"]
+  },
+  {
+    "name":"Level Blue Open Threat Exchange",
+    "description":"Blue Team Threat Exchange",
+    "url":"https://otx.alienvault.com/browse/global/pulses?include_inactive=0&sort=-modified&page=1&limit=10",
+    "tags":["osint","threat intel","misc"]
+  },
+  {
+    "name":"Exploit-DB",
+    "description":"CVE / Exploit Disclosures",
+    "url":"https://www.exploit-db.com/",
+    "tags":["cve","poc","ghdb","dorking","shellcode","pentest","hacking","exploit","books"]
+  },
+  {
+    "name":"Haiker",
+    "description":"Corp Level Threat Analysis",
+    "url":"https://haicker.app/",
+    "tags":["osint","threat intel"]
+  },
+  {
+    "name":"pentestGPT",
+    "description":"A LLM Built For Pentesting",
+    "url":"https://github.com/GreyDGL/PentestGPT",
+    "tags":["llm","ai","gpt","pentest","exploit"]
+  },
+  {
+    "name":"GovCert.ch Cyber Threat Intel",
+    "description":"A Directory Of Cyber Threat Intel",
+    "url":"https://github.com/govcert-ch/CTI",
+    "tags":["cve","threat intel","exploit","shell","dos","misc"]
+  },
+  {
+    "name":"PowerPWN",
+    "description":"A Offensive Security Toolset For Microsoft 365",
+    "url":"https://github.com/mbrg/power-pwn",
+    "tags":["windows","powershell","shell","exploit","offsec","misc","tool"]
+  },
+  {
+    "name":"F-Droid",
+    "description":"A Catalogue Of FOSS (Free Open Source Software) Android",
+    "url":"https://f-droid.org/",
+    "tags":["android","apps","jack","termux","FOSS","mobile"]
+  },
+  {
+    "name":"Termux: App",
+    "description":"A Linux Emulator For Android",
+    "url":"https://f-droid.org/en/packages/com.termux/",
+    "tags":["android","apps","jack","termux","hacking","linux","mobile"]
+  },
+  {
+    "name":"Termux: API",
+    "description":"Termux API For Extended Android Functions",
+    "url":"https://f-droid.org/en/packages/com.termux.api/",
+    "tags":["android","apps","jack","termux","hacking","mobile"]
+  },
+  {
+    "name":"Termux: Boot",
+    "description":"Termux Bootable Applications",
+    "url":"https://f-droid.org/en/packages/com.termux.boot/",
+    "tags":["android","apps","jack","termux","boot","mobile"]
+  },
+  {
+    "name":"Termux: Style",
+    "description":"Styling For Termux",
+    "url":"https://f-droid.org/en/packages/com.termux.styling/",
+    "tags":["misc","android","mobile","jack","termux","style"]
+  },
+  {
+    "name":"Termux: Tasker",
+    "description":"Termux Tasking",
+    "url":"https://f-droid.org/en/packages/com.termux.tasker/",
+    "tags":["mobile","android","termux","jack","mobile"]
+  },
+  {
+    "name":"Termux: GUI",
+    "description":"Graphical User Interface (CLI)",
+    "url":"https://f-droid.org/en/packages/com.termux.gui/",
+    "tags":["mobile","android","termux","mobile","jack"]
+  },
+  {
+    "name":"Aurora Store (FOSS)",
+    "description":"An unofficial FOSS client for Google Play (anonymized)",
+    "url":"https://f-droid.org/en/packages/com.aurora.store/",
+    "tags":["anonymize","foss","mobile","android","jack"]
+  },
+  {
+    "name":"Nethunter App Store",
+    "description":"A Catalogue Of Android Applications For Penetration Testing",
+    "url":"https://store.nethunter.com/",
+    "tags":["foss","mobile","android","kali","misc","jack"]
+  },
+  {
+    "name":"ACode",
+    "description":"IDE For Android",
+    "url":"https://f-droid.org/en/packages/com.foxdebug.acode/",
+    "tags":["mobile","android","ide","programming","jack"]
+  },
+  {
+    "name":"Kaspersky Attack Map",
+    "description":"DDoS Attack Map",
+    "url":"https://cybermap.kaspersky.com/",
+    "tags":["osint","threat intel","attack map","map","misc"]
+  },
+  {
+    "name":"ThreatButt Attack Map",
+    "description":"Threat Attack Map",
+    "url":"https://threatbutt.com/map/",
+    "tags":["osint","threat intel","attack map","map","misc"]
+  },
+  {
+    "name":"TON Wallet",
+    "description":"A Cytpo Wallet For Your TONCoins",
+    "url":"https://ton.org/en/wallets?locale=en&pagination[limit]=-1",
+    "tags":["crypto","misc","wallet","telegram"]
+  },
+  {
+    "name":"CyberNews (Youtube)",
+    "description":"A CyberSecurity Documentary And News Channel",
+    "url":"https://www.youtube.com/@cybernews",
+    "tags":["youtube","news","cybersecurity","channel","misc"]
+  },
+  {
+    "name":"John Hammond (Youtube)",
+    "description":"A CyberSecurity SOC Threat Analyst",
+    "url":"https://www.youtube.com/@_JohnHammond",
+    "tags":["youtube","cybersecurity","channel","misc"]
+  },
+  {
+    "name":"DeadOverflow (Youtube)",
+    "description":"A Bug Bounty And CyberSecurity Teacher & Analyst",
+    "url":"https://www.youtube.com/@deadoverflow",
+    "tags":["youtube","cybersecurity","channel","misc"]
+  },
+  {
+    "name":"HackNinja (Youtube)",
+    "description":"An AI Generated CyberSecurity News Network",
+    "url":"https://www.youtube.com/@hackninja9467",
+    "tags":["youtube","cybersecurity","channel","misc","news"]
+  },
+  {
+    "name":"Terry Davis (HolyC)",
+    "description":"Self Explanitory",
+    "url":"https://www.youtube.com/@absoluteterrydavis",
+    "tags":["misc","youtube","channel","programming","c"]
+  },
+  {
+    "name":"Android Developers (Youtube)",
+    "description":"...",
+    "url":"https://www.youtube.com/@AndroidDevelopers",
+    "tags":["misc","android","youtube","programming","kotlin","android studio"]
+  },
+  {
+    "name":"Hacker Blueprint (Youtube)",
+    "description":"Providing Free And Accessible Information For Anything CyberSecurity",
+    "url":"https://www.youtube.com/@HackerBlueprint",
+    "tags":["news","osint","hack","offsec","channel","youtube","misc","tutorial","jack"]
+  },
+  {
+    "name":"Low Level (Youtube)",
+    "description":"Videos About CyberSecurity And Software Security",
+    "url":"https://www.youtube.com/@LowLevelTV",
+    "tags":["youtube","channel","misc","tutorial","cybersecurity","binary","assembly"]
+  },
+  {
+    "name":"Cyber Flow (Youtube)",
+    "description":"Free Information On CyberSecurity.",
+    "url":"https://www.youtube.com/@CyberFlow10",
+    "tags":["cybersecurity","youtube","channel","misc","tutorial"]
+  },
+  {
+    "name":"Mister OSINT",
+    "description":"A Savage OSINT Dude....",
+    "url":"https://www.youtube.com/@Misterosint",
+    "tags":["osint","youtube","channel","misc"]
+  },
+  {
+    "name":"Mults (Youtube)",
+    "description":"Nerd Programming",
+    "url":"https://www.youtube.com/@MultsElMesco",
+    "tags":["youtube","tutorial","programming","channel","misc"]
+  },
+  {
+    "name":"Matt Brown (Youtube)",
+    "description":"IOT And Firmware Hacking",
+    "url":"https://www.youtube.com/@mattbrwn",
+    "tags":["youtube","hacking","channel","misc","reverse engineering","firmware","IOT"]
+  },
+  {
+    "name":"jdh (Youtube)",
+    "description":"An insane programmer, legit created a OS just for tetris and built minecraft in 48 hours.",
+    "url":"https://www.youtube.com/@jdh",
+    "tags":["misc","programming","youtube","channel","jack","assembly","os","dd","linux"]
+  },
+  {
+    "name":"WinGet Tutorial (Microsoft)",
+    "description":"How to use winget.",
+    "url":"https://learn.microsoft.com/en-us/windows/package-manager/winget/",
+    "tags":["powershell","windows","winget","misc"]
+  },
+  {
+    "name":"Windows SysInternals Tutorial",
+    "description":"A tutorial of how to install and use SysInternals",
+    "url":"https://www.petergirnus.com/blog/how-to-install-sysinternals-on-windows",
+    "tags":["windows","powershell","misc","blue team","reverse engineering"]
+  },
+  {
+    "name":"Nile Blue (Youtube) Chemistry",
+    "description":"Chem On Youtube",
+    "url":"https://www.youtube.com/@NileBlue",
+    "tags":["chemistry","youtube","channel","misc"]
+  },
+  {
+    "name":"Anarchist CookBook",
+    "description":"...If you know you know....",
+    "url":"https://archive.org/details/the-anarchist-cookbook-william-powell",
+    "tags":["anarchy","banned","LEGAL","protest"]
+  },
+  {
+    "name":"Combat survival",
+    "description":"Combat First Aid",
+    "url":"https://archive.org/details/29721000R.nlm.nih.gov",
+    "tags":["banned","LEGAL","anarchy","medical","first aid"]
+  },
+  {
+    "name":"Psyhology & Intel Analysis",
+    "description":"CIA Grade Psyop Intel",
+    "url":"https://archive.org/details/PsychologyOfIntelligenceAnalysis",
+    "tags":["banned","LEGAL","anarchy","psyop","cia"]
+  },
+  {
+    "name":"SE & The Science of Hacking Humans",
+    "description":"Social Engineering",
+    "url":"https://archive.org/details/SocialEngineeringTheScienceOfHumanHacking2ndEdition",
+    "tags":["anarchy","banned","LEGAL","cia","se","social engineering","psyop"]
+  },
+  {
+    "name":"SE In IT Security",
+    "description":"Social Engineering in IT Security",
+    "url":"https://archive.org/details/socialengineerin0000conh",
+    "tags":["banned","LEGAL","social engineering","psyop","anarchy"]
+  },
+  {
+    "name":"Tracking Attackers In Open Source Supply Chain",
+    "description":"Tracking active FOSS/Open Source supply chain attacks",
+    "url":"https://archive.org/details/tracking-attackers-in-open-source-supply-chain-attacks-the-new-frontier-tzachi-zack-zorenshtain",
+    "tags":["banned","LEGAL","supply chain","se","misc"]
+  },
+  {
+    "name":"Active Directory Cookbook",
+    "description":"Active Directory How-To (Attacktive Directory Research)",
+    "url":"https://archive.org/details/activedirectoryc0000alle_p6g9",
+    "tags":["banned","active directory","windows","hack","powershell","enterprise"]
+  },
+  {
+    "name":"Attacktive Directory Exploitation",
+    "description":"Windows Active Directory Exploitation, THM Writeup",
+    "url":"https://crazyeights225.github.io/attacktivedir/",
+    "tags":["tryhackme","writeup","enterprise","hack","active directory","windows","powershell"]
+  },
+  {
+    "name":"Log4J Explained",
+    "description":"Log4J ZeroDay Exploit Explained",
+    "url":"https://builtin.com/articles/log4j-vulerability-explained",
+    "tags":["log4J","windows","apache","misc"]
+  },
+  {
+    "name":"FUD Explained",
+    "description":"What F.U.D stands for",
+    "url":"https://en.wikipedia.org/wiki/Fear,_uncertainty,_and_doubt",
+    "tags":["fud","enterprise","hack","misc"]
+  },
+  {
+    "name":"Basic Metasploit Tutorial",
+    "description":"...",
+    "url":"https://www.stationx.net/metasploit-tutorial/",
+    "tags":["metasploit","hack","tutorial","exploit","misc"]
+  },
+  {
+    "name":"APT Explained",
+    "description":"What A.P.T stands for",
+    "url":"https://en.wikipedia.org/wiki/Advanced_persistent_threat",
+    "tags":["apt","enterprise","state actor","hack","misc"]
+  },
+  {
+    "name":"PoC: GTFO Archive",
+    "description":"Pastor: Manul Laphroaig (How Hacking Changed History)",
+    "url":"https://archive.org/search?query=creator%3A%22Pastor+Manul+Laphroaig%22",
+    "tags":["hack","jack","tutorial","writeup","poc","misc","banned","LEGAL"]
+  },
+  {
+    "name":"Roots Of Hacking (MIT)",
+    "description":"MIT were the l33ts.",
+    "url":"https://en.wikipedia.org/wiki/Hacks_at_the_Massachusetts_Institute_of_Technology",
+    "tags":["hack","history","misc"]
+  },
+  {
+    "name":"Brave Browser",
+    "description":"blocks ads and trackers",
+    "url":"https://brave.com/download/",
+    "tags":["ads","ad revolution","fuckyoutube","youtube","browser"]
+  },
+  {
+    "name":"uBlock Origin",
+    "description":"Free open source ad and content blocker",
+    "url":"https://ublockorigin.com/",
+    "tags":["ads","browser","ad revolution","fuckyoutube","youtube"]
+  },
+  {
+    "name":"Ghostery Ad Blocker",
+    "description":"a simple adblocker (time tested)",
+    "url":"https://www.ghostery.com/",
+    "tags":["ads","browser","ad revolution","fuckyoutube","youtube"]
+  },
+  {
+    "name":"SNES9X",
+    "description":"Super nintendo emulator",
+    "url":"https://www.snes9x.com/",
+    "tags":["android","emulator","windows","misc"]
+  },
+  {
+    "name":"SNES Rom Pack (0)",
+    "description":"SNES Roms",
+    "url":"https://archive.org/details/SuperNintendofull_rom_pack",
+    "tags":["snes","android","emulator","windows","rom","misc"]
+  },
+  {
+    "name":"Dr.Jean Repo",
+    "description":"Jacks Dr.Jean Repo",
+    "url":"https://github.com/J4ck3LSyN-Gen2/Dr.Jean",
+    "tags":["Dr.Jean","alien","repo","jack","misc","github"]
+  },
+  {
+    "name":"Alien Repo",
+    "description":"Jacks Alien Repo",
+    "url":"https://github.com/J4ck3LSyN-Gen2/Alien",
+    "tags":["alien","repo","jack","github","misc"]
+  },
+  {
+    "name":"BloodHound",
+    "description":"BloodHound uses graph theory to reveal the hidden and often unintended relationships within an Active Directory or Azure environment. ",
+    "url":"https://github.com/SpecterOps/BloodHound",
+    "tags":["network","active directory","windows","expliot"]
+  },
+  {
+    "name":"The Bearded IT Dad",
+    "description":"Self Explanitory",
+    "url":"https://www.youtube.com/@TheBeardedITDad",
+    "tags":["it","offsec","youtube","channel","misc"]
+  },
+  {
+    "name":"Rust For Malware Development",
+    "description":"...",
+    "url":"https://bishopfox.com/blog/rust-for-malware-development",
+    "tags":["rust","malware","fud","development","misc"]
+  },
+  {
+    "name":"Rust Books",
+    "description":"Books Of Rust...",
+    "url":"https://rust-book.cs.brown.edu/",
+    "tags":["rust","books","development","misc"]
+  },
+  {
+    "name":"BlackHat Rust",
+    "description":"Rust For Black Hats (duh...)",
+    "url":"https://github.com/skerkour/black-hat-rust",
+    "tags":["rust","books","blackhat","hax","misc","development"]
+  },
+  {
+    "name":"RustRedOps",
+    "description":"Offensive security techniques repo: RustRedOps",
+    "url":"https://www.blackhatethicalhacking.com/tools/rustredops/",
+    "tags":["rust","offset","repo","misc","hax","development"]
+  },
+  {
+    "name":"Riot Medicine",
+    "description":"Pre-Action planning for riot medics",
+    "url":"https://activisthandbook.org/wellbeing/riot-medicine/pre-action-planning",
+    "tags":["riot","protest","activist","misc","medic"]
+  },
+  {
+    "name":"Riot Medic Field Guide",
+    "description":"...",
+    "url":"https://riotmedicine.net/",
+    "tags":["riot","protest","activist","medic","misc"]
+  },
+  {
+    "name":"Action Medic Workshop",
+    "description":"A Workshop aimed to aid in skill development for protests or action scenerios",
+    "url":"https://greenandblackcross.org/get-involved/workshops/action-medic-workshop/",
+    "tags":["riot","protest","activist","medic","misc"]
+  },
+  {
+    "name":"ANTIFA Handbook",
+    "description":"Anti-Facist Handbook",
+    "url":"https://files.libcom.org/files/Antifa,%20The%20Anti-Fascist%20Handbook.pdf",
+    "tags":["protest","riot","activist","medic","misc"]
+  },
+  {
+    "name":"Medical Solidarity",
+    "description":"Automous medical work as self defense in the context of disastors or social struggles.",
+    "url":"https://mutualaiddisasterrelief.org/wp-content/uploads/2021/06/Medical-Solidarity-Autonomous-Medical-Work-as-Self-Defense-in-the-Context-of-Disasters-and-Social-Struggle.pdf",
+    "tags":["protest","riot","activist","medic","misc"]
+  },
+  {
+    "name":"EMS Field Guide",
+    "description":"...",
+    "url":"https://www.mylvad.com/sites/default/files/EMS%20Field%20Guides/2019%20Field%20Guides/Total%20Document/2019%20EMS%20Field%20Guide%20Complete%20Document.pdf",
+    "tags":["protest","ems","activist","medic","misc"]
+  },
+  {
+    "name":"wapiti",
+    "description":"Web vulnerability scanner",
+    "url":"https://github.com/wapiti-scanner/wapiti?tab=readme-ov-file",
+    "tags":["websec","dirb","vulnerabilities","exploit","webapp","fuzzing"]
+  },
+  {
+    "name":"Hack Bar",
+    "description":"A browser extension for penetration testing.",
+    "url":"https://addons.mozilla.org/en-US/firefox/addon/firefox-hackbar/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search",
+    "tags":["pentest","hack","browser","vulnerabilities","extension","bugcrushing"]
+  },
+  {
+    "name":"AI Anywhere (Firefox)",
+    "description":"...",
+    "url":"https://addons.mozilla.org/en-US/firefox/addon/ai_anywhere/",
+    "tags":["ai","browser","extension","misc"]
+  },
+  {
+    "name":"",
+    "description":"",
+    "url":"",
+    "tags":[]
+  },
+  {
+    "name":"",
+    "description":"",
+    "url":"",
+    "tags":[]
+  },
+  {
+    "name":"",
+    "description":"",
+    "url":"",
+    "tags":[]
+  },
+  {
+    "name":"",
+    "description":"",
+    "url":"",
+    "tags":[]
+  },
+  {
+    "name":"",
+    "description":"",
+    "url":"",
+    "tags":[]
+  },
+  {
+    "name":"",
+    "description":"",
+    "url":"",
+    "tags":[]
+  },
+  {
+    "name":"",
+    "description":"",
+    "url":"",
+    "tags":[]
+  },
+  {
+    "name":"",
+    "description":"",
+    "url":"",
+    "tags":[]
+  }
+]
