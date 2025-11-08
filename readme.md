@@ -1,3 +1,5 @@
+> _NOTE:_ We are currently in the process of updating from Generation 2 Version 0.2.0 to Generation 2 Version 0.2.1
+
 # ALNv2020(Generation 2 version 0.2.0)
 
 ![Python 3.14](https://img.shields.io/badge/python-3.14📡-magenta)
@@ -1819,3 +1821,4 @@ __Under-Construction__
 #### browser
 
 __Under-Construciton__
+
