@@ -9,9 +9,24 @@
 
 ## Alien
 
-The alien framework is a modular toolkit centralized around a powerful JSON-based interpreter. It is engineered for a wide array of software engineering and cybersecurity-related tasks, enabling the execution of complex logic operations with
-the capabilities of library importation (alien/pythonic), theading, LLM(ATLAS) ollama
-communications, low-level memory/process management and different redteam(offsec) tools and network based operations.
+The _Alien Framework_ is a project designed over years of my personal growth and developmental expierence, I have designed it to be a centralized toolkit for Cybersecurity/OffensiveSecurity/OperationSecurity operations, software development and general purpose. _Alien_ offers tools such as:
+
+* `Alien Syntax`
+  - Advanced JSON-Based programmable interface.
+  - Includes: `library importation`, `obfuscation key-mapping`, `programmable script execution`, `class inheritance`, `asynchronous operations`, `stack based executions`, `modern statement & expression handling`.
+ 
+* `A.T.L.A.S`
+  - Standing for `Advanced`, `Technological`, `Logical`, `Analysis`, `System`
+  - While my personal performance capabilities `A.T.L.A.S` is agentic capable, with easy `MCP` tool integration capabilities & deep reasoning.
+  - `A.T.L.A.S` Has been proven to run on `2009` based systems, while with slow reponse times being accurate.
+ 
+* `Utils`
+  - General utilities.
+  - `tranmission` For `web hosting`, `sockets`, `mitm`, `browser emulation`, `port/dns enumeration` and `proxies`.
+  - `cypher` General `cryptography`, `stenography` and `obfuscation`.
+  - `compress` For `huffman` and `zip` operations.
+
+And more...
 
 ## Index
 
@@ -1653,3 +1668,4 @@ I am constantly working on alien so please be patient.
 ### Go Home
 
 [Index](#index)
+
