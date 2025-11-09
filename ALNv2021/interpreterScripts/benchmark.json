@@ -1,0 +1,44 @@
+{
+    "metadata": {
+        "author": "J4ck3LSyN",
+        "title": "Used to benchmark certain alien operations.",
+        "version": "0.0.1",
+        "description": "**Under Construction**",
+        "dependencies": []
+    },
+    "functions": {
+      "main":{
+        "parameters":[],
+        "body":[
+          {"type":"for","iterable":{"type":"literal","value":[1,2,3,4,5]},"loopVar":"i","body":[
+            {"type":"call","functionName":"io.print","arguments":[
+              {"type":"varRef","name":"i"},
+              {"type":"exprString","target":{"value":" :: %{isoTime} :: %{asciiTime}"},"expressions":{
+                "isoTime":{"type":"call","functionName":"time.time","arguments":[]},
+                "asciiTime":{"type":"call","functionName":"time.asciiTime","arguments":[]}
+              }}
+            ]}
+          ]},
+          {"type":"for","iterable":{"type":"range","end":5},"loopVar":"i","body":[
+            {"type":"call","functionName":"io.print","arguments":[
+              {"type":"varRef","name":"i"},
+              {"type":"exprString","target":{"value":" :: %{isoTime} :: %{asciiTime}"},"expressions":{
+                "isoTime":{"type":"call","functionName":"time.time","arguments":[]},
+                "asciiTime":{"type":"call","functionName":"time.asciiTime","arguments":[]}
+              }}
+            ]}
+          ]}
+        ]
+      }
+    },
+    "classes": {},
+    "globals": {
+      "bannerOpen":"*-- ",
+      "bannerClose":" --*"
+    },
+    "inline": [
+      {"type":"import","moduleName":"io"},
+      {"type":"import","moduleName":"time"},
+      {"type":"import","moduleName":"variables"}
+    ]
+}
