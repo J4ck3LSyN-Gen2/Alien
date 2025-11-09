@@ -1223,6 +1223,7 @@ Default Open & Close:
 ```
 
 ## configHande Module
+## configHandle Module
 
 ```python
 import ALNv2021 as alien
