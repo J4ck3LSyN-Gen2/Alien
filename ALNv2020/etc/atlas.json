@@ -1,9 +1,0 @@
-{
-    "logger":{
-        "filePipe":0
-    },
-    "configure":{
-        "readDefaultConfig":true,
-        "defaultConfigName":"atlas.json"
-    }
-}
