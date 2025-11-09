@@ -1,4 +1,5 @@
 requests
+h11==0.16.0
 huffman
 shodan
 wikipedia
@@ -9,3 +10,13 @@ donut
 pycurl
 paramiko
 dotenv
+ollama
+pillow
+nltk
+pydantic
+transformers
+torch
+aiohttp
+colorama
+pyfiglet
+alive-progress
