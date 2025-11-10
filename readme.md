@@ -5,8 +5,6 @@
 ![Network Traffic Obfusction](https://img.shields.io/badge/Network%20Traffic%20Obfuscation-green)
 ![Alien Framework Generation 2 Version 0.2.1](https://img.shields.io/badge/Alien%20Framework%20Generation%202%20Version%200.2.1-blue)
 
-## Alien
-
 The _Alien Framework_ is a project designed over years of my personal growth and developmental expierence, I have designed it to be a centralized toolkit for Cybersecurity/OffensiveSecurity/OperationSecurity operations, software development and general purpose. _Alien_ offers tools such as:
 
 * `Alien Syntax`
@@ -1673,6 +1671,7 @@ I am constantly working on alien so please be patient.
 ### Go Home
 
 [Index](#index)
+
 
 
 
