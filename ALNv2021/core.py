@@ -16,6 +16,7 @@ from .utils import systemInfo
 from .utils import transmission
 from .utils import compress
 from .utils import cypher
+from .utils import misc
 
 # Exceptions
 # interpreter
@@ -1065,6 +1066,10 @@ class atlasHandle:
             # 'tool':[ callable, tool_call ]
         }
         self.toolHandle = self._initTools()
+        self.rescHandle = misc.resources(
+            logger = self.logger,
+            confHandle=self.confHandle
+        )
         self.currentSessions = None
         # Empty modules
         # NTLK

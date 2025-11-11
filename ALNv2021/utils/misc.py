@@ -1,107 +1,9 @@
-from datetime import datetime # type: ignore
-import time
-from typing import Any, Dict
-import random
-import string
-import base64
-import requests # type: ignore (for resources getting)
-import json
-import os
-import colorama # type: ignore
-import re
+import time, random, string, base64, requests , json, os # type: ignore
 from typing import Union, List, Dict, Optional, Any, Callable, Tuple
+from datetime import datetime # type: ignore
 
 
-__version__ = "0.0.7"
-
-class colorFormatter:
-
-    def __init__(self,colorObject:Optional[Dict[str,Any]]=None):
-        """"""
-        self.cF = colorfullDisplay()
-        self.cF.colorObject = colorObject if colorObject else self.cF.colorObject
-
-    def __call__(self,text):
-        return self.cF.colorize(text)
-    
-    def print(self,text):
-        print(str(self.cF.colorize(text)))
-
-    def format(self,text,**kwargs):
-        if kwargs: text = text.format(**kwargs)
-        return self.cF.colorize(text)
-
-class colorfullDisplay:
-
-    def __init__(self,logger:Any=None,confHandle:Any=None):
-
-        self.logger = logger
-        self.confHandle = confHandle
-
-        self.config = {
-        }
-
-        self.colorObject = self._buildColorMap()
-
-    # *--- Build Comparison Map ---*
-
-    def _buildColorMap(self):
-        """"""
-        colorObject = {}
-        fBAttrs = [
-            (   
-                "f",
-                colorama.Fore,
-                dir(colorama.Fore)
-            ),
-            (   
-                "b",
-                colorama.Back,
-                dir(colorama.Back)
-            )
-        ]
-        for o in fBAttrs:
-            for attr in o[2]:
-                if not str(attr).startswith("_"):
-                    v = getattr(o[1],attr)
-                    colorObject[f"{o[0]}.{attr.lower()}"]=v
-                    if str(attr).lower() in [
-                        "red",
-                        "green",
-                        "yellow",
-                        "blue",
-                        "magenta",
-                        "cyan",
-                        "white"]:
-                        colorObject[f"{o[0]}.{attr.lower()[0]}"]=v
-        for o in dict(colorama.Style):
-            colorObject[f"s.{o.lower()}"]=getattr(colorama.Style,o)
-        self.logPipe("_buildColorMap",f"Compiled Color Map, Keys: {', '.join([i for i in colorObject.keys()])}")
-        return colorObject
-
-
-    # *--- Main ---*
-
-    def colorize(self,text:str,colorObject:Optional[Dict[str,Any]]=None):
-        """"""
-        colorObject = colorObject if colorObject else self.colorObject
-        def replaceMatch(match):
-            """"""
-            code = match.group(1)
-            return colorObject.get(code,match.group(0))
-        
-        def replaceBrace(match):
-            """"""
-            code = match.group(1)
-            return colorObject.get(code,match.group(0))
-        
-        text=re.sub(r"\$([\w\.]+)$",replaceMatch,text)
-        text=re.sub(r"%$([\w\.]+)$",replaceBrace,text)
-        return text
-
-    def logPipe(self,r,m,l=None,e=None,f=False):
-        if self.logger: self.logger.logPipe(r,m,loggingLevel=l,extendedContext=e,forcePrintToScreen=f)
-
+__version__ = "0.0.3"
 
 class resources:
     
@@ -113,7 +15,26 @@ class resources:
         self.config = {
             "resourcePath":os.path.join("ALNv2021","etc","resources")
         }
+        self.tags = []
         self.rescList = [os.path.join(self.config['resourcePath'],f) for f in os.listdir(self.config['resourcePath'])]
+        self._loadTags()
+    
+    
+    def _loadTags(self,file:str=None):
+        """"""
+        if file:
+            data = self._loadData(file)
+            for o in data:
+                for i in o['tags']:
+                    if i not in self.tags: self.tags.append(i)
+            self.tags.sort()
+        else:
+            for f in self.rescList:
+                data = self._loadData(f)
+                for o in data:
+                    for i in o['tags']:
+                        if i not in self.tags: self.tags.append(i)
+                self.tags.sort()
 
 
     def _validateFile(self,file:str):
@@ -158,18 +79,20 @@ class resources:
             "\n".join(prettyPrintData),
         ])
 
-    def _search(self,tags:List[str],keywords:List[str]):
+    def _search(self,tags:List[str],keywords:List[str],returnNoCombine:bool=False):
         """"""
         finalString = []
         for file in self.rescList:
             if not self._validateFile(file): continue
             data = self._loadData(file)
             if not data: continue
-            indexedData = self._indexData(tags,keywords,data)
-            prettyPrintData = self._prettyPrint(indexedData)
-            finalString.append(prettyPrintData)
-        return "\n".join(finalString)
-
+            iData = self._indexData(tags,keywords,data)
+            if not iData: continue
+            if returnNoCombine: 
+                finalString.append(iData)
+                continue
+            finalString.append(self._finalPrint(self._prettyPrint(iData),tags,keywords))
+        return finalString
 
     ## main
     # log pipe

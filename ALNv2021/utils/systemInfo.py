@@ -1,9 +1,5 @@
+import sys, os, platform, psutil, getpass # type: ignore 
 from typing import Any, Dict, Tuple
-import sys
-import os
-import platform
-import psutil # type: ignore
-import getpass
 
 class systemInfo:
     """

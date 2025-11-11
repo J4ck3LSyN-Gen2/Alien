@@ -1,28 +1,11 @@
-import socket # sock, proxy
-import http # browser, web, proxy
-from http.server import BaseHTTPRequestHandler, HTTPServer, SimpleHTTPRequestHandler # web
-import socketserver # web
-from urllib.parse import urlparse, parse_qs # web
-from functools import partial # web
-import json # *
-import re # planned: web, sock, & browser
-import os # *
-import requests # type: ignore # web, browser
-import struct # sock
-import select # Planned: browser 
-import queue # process threading que
-from typing import Any, Dict, Optional, Callable, List 
-import psutil # type: ignore # processes
-import pycurl # type: ignore # curl
+import socket , http , socketserver , json , re, os 
+import requests , struct , select , queue , psutil , pycurl # type: ignore
+import certifi, time , random , base64 , importlib , sys , paramiko, threading # type: ignore
 from io import BytesIO, StringIO # curl
-import certifi # type: ignore
-import time # * 
-import random # web, sock, ssh, browser 
-import base64 # web, sock, browser
-import importlib # ssh
-import sys # ssh
-import paramiko # type: ignore
-import threading # For extended threading outsidef of processHandle
+from typing import Any, Dict, Optional, Callable, List 
+from functools import partial # web
+from http.server import BaseHTTPRequestHandler, HTTPServer, SimpleHTTPRequestHandler # web
+from urllib.parse import urlparse, parse_qs # web
 
 __vession__ = "0.0.3"
 
@@ -282,7 +265,6 @@ class ssh:
     def logPipe(self,r,m,l=None,e=None,f=False):
         if self.logger: self.logger.logPipe(r,m,loggingLevel=l,extendedContext=e,forcePrintToScreen=f)
 
-
 class curl:
 
     """
@@ -335,47 +317,6 @@ class curl:
     # Log pipe
     def logPipe(self,r,m,l=None,e=None,f=False):
         if self.logger: self.logger.logPipe(r,m,loggingLevel=l,extendedContext=e,forcePrintToScreen=f)
-
-class nmap:
-    
-    """
-    *-- NMAP Scans --*
-    """
-
-    def __init__(self,
-                 logger:Any=None):
-        self.logger = logger
-
-    ## Main
-    # Log Pipe
-    def logPipe(self,r,m,l=None,e=None,f=False):
-        if self.logger: self.logger.logPipe(r,m,loggingLevel=l,extendedContext=e,forcePrintToScreen=f)
-
-class externalProxies:
-
-    """
-    *-- Proxy Operations --*
-
-    Concept:
-
-        - proxychain configuration,
-        - proxy sourcing.
-        - proxy testing.
-        - local proxy (mitm).
-    """
-
-    def __init__(self,
-                 process:Any,
-                 logger:Any=None):
-        self.logger = logger
-        self.process = process
-
-    ## Main
-    # Log Pipe
-    def logPipe(self,r,m,l=None,e=None,f=False):
-        if self.logger: self.logger.logPipe(r,m,loggingLevel=l,extendedContext=e,forcePrintToScreen=f)
-
-# class manInTheMiddle (further down the line)
 
 class browser:
 

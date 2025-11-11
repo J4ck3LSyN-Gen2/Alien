@@ -1,9 +1,7 @@
+import zipfile, sys, os # type: ignore
 import huffman as huffmanHandle # type: ignore
-import zipfile # type: ignore
 from collections import Counter # type: ignore
 from typing import Any, List, Dict
-import os
-import sys
 
 __version__ = "0.0.2"
 

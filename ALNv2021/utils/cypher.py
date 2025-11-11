@@ -1,16 +1,12 @@
-import hashlib
-import os
-import base64
+import hashlib, os, base64, string, secrets, getpass
 from typing import Any
-import string
-import secrets
-import getpass
 # Crypts
 from cryptography.fernet import Fernet  # type: ignore
 from cryptography.hazmat.primitives import hashes, padding  # type: ignore
 from cryptography.hazmat.primitives.asymmetric import rsa, padding as asym_padding # type: ignore
 from cryptography.hazmat.primitives import serialization # type: ignore
 from cryptography.hazmat.backends import default_backend # type: ignore
+
 
 __version__ = "0.0.1"
 
