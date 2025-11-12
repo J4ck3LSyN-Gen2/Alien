@@ -17,6 +17,7 @@ from .utils import transmission
 from .utils import compress
 from .utils import cypher
 from .utils import misc
+from .utils import logExt
 
 # Exceptions
 # interpreter
@@ -50,7 +51,7 @@ from .errors import syntaxBinaryOpMissingLeftOrRight
 from .errors import syntaxCannotEvalDueToMissingValueKey
 from .errors import syntaxCannotResolveVariableDueToNonExistance
 
-__version__ = "0.1.0"
+__version__ = "0.1.2"
 
 # class databaseHandle
 
@@ -6223,541 +6224,549 @@ class configHandle:
         """
         if self.logger and self.config.get('useLogging') == True: self.logger.logPipe(r,m,loggingLevel=l,extendedContext=e,forcePrintToScreen=f)
 
+# *--- Logging ---*
+
+class coloredFormatter(logging.Formatter):
+    black="\x1b[30m";red="\x1b[31m";green="\x1b[32m";yellow="\x1b[33m"
+    blue="\x1b[34m";gray="\x1b[38m";reset="\x1b[0m";bold="\x1b[1m"
+    COLORS={logging.DEBUG:gray+bold,logging.INFO:blue+bold,logging.WARNING:yellow+bold,logging.ERROR:red,logging.CRITICAL:red+bold}
+    def __init__(self,fmt:str="(black){asctime}(reset) (levelcolor){levelname:<8}(reset) (green){name}(reset) {message}",datefmt:str="%Y-%m-%d %H:%M:%S",style:str="{"):
+        super().__init__();self.default_format=fmt;self.datefmt=datefmt;self.style=style
+    def format(self,record):
+        logColor=self.COLORS.get(record.levelno,self.reset)
+        fmtStr=self.default_format.replace("(black)",self.black+self.bold).replace("(reset)",self.reset).replace("(levelcolor)",logColor).replace("(green)",self.green+self.bold)
+        return logging.Formatter(fmtStr,self.datefmt,self.style).format(record)
+
+class simpleFormatter(logging.Formatter):
+    def __init__(self,fmt:str="[{asctime}] [{levelname:<8}] {name}: {message}",datefmt:str="%Y-%m-%d %H:%M:%S",style:str="{"):
+        super().__init__(fmt,datefmt,style)
+
+class extLogger:
+    def __init__(self,loggerID:str,consoleLevel:int=logging.INFO,filePath:Optional[str]=None,fileLevel:int=logging.DEBUG,consoleFormatter:logging.Formatter=None,fileFormatter:logging.Formatter=None):
+        self.logger=logging.getLogger(loggerID)
+        self.logger.setLevel(logging.DEBUG)
+        if self.logger.hasHandlers():self.logger.handlers.clear()
+        consoleHandle=logging.StreamHandler()
+        consoleHandle.setLevel(consoleLevel)
+        consoleHandle.setFormatter(consoleFormatter or coloredFormatter())
+        self.logger.addHandler(consoleHandle)
+        if filePath:
+            try:
+                logDir=os.path.dirname(filePath)
+                if logDir:os.makedirs(logDir,exist_ok=True)
+                fileHandler=logging.FileHandler(filePath,mode='a',encoding='utf-8')
+                fileHandler.setLevel(fileLevel)
+                fileHandler.setFormatter(fileFormatter or simpleFormatter())
+                self.logger.addHandler(fileHandler)
+            except(OSError,PermissionError) as e:
+                self.logger.error(f"Failed to create file handler for '{filePath}': {e}",exc_info=True)
+    def debug(self,msg:str):self.logger.debug(msg)
+    def info(self,msg:str):self.logger.info(msg)
+    def warning(self,msg:str):self.logger.warning(msg)
+    def error(self,msg:str):self.logger.error(msg)
+    def critical(self,msg:str):self.logger.critical(msg)
+
 class loggerHandle:
-    __version__ = "1.0.0"
-
-    """
-    *-- Logging Functionality (ALNv2021):1.0.0 --*
-    
-    Main Logging For ALNv2021 (Replacement Of Original `logPipe`).
-    
-    How To Implement:
-        # Import and create
-        from logger import loggerHandle
-        logger = loggerHandle('loggerName')
-    """
-
-    def __init__(self,
-                 loggerID: str,
-                 setupLogger: bool = True,
-                 configOverrides: Optional[dict] = None):
-        """
-        Initializes The Logging Functionality.
-        
-        Args:
-            loggerID (str): Name of the logger.
-            setupLogger (bool, optional): If True run `self._setupLogger`.
-            configOverrides (dict, optional): Override default configuration values.
-        """
-        # Root logger configuration
-        self.config = {
-            'level': 3,  # Default level (logger) // Default Error
-            'consoleIndentLevel': 2,  # Console indent level (logger)
-            'filePipe': 1,  # Write To File
-            'fileName': 'ALNv2021_%(DATE)_%(LOGGERNAME).json',  # File name template
-            'filePath': os.path.join("ALNv2021", "etc", "logs"),  # File path
-            'fileIndentLevel': 2,  # JSON indent level
-            'contextKeyMessageFormat': ': ',  # _appendExtendedContext Key:message format
-            'contextCompileMessageFormat': ', ',  # _appendExtendedContext finalKeyList format
-            'loggerFormat': '[%(levelname)s] (%(asctime)s) :: %(name)s :: %(message)s',  # logging format
-            'logBufferSize': 100,  # Number of log entries to buffer before writing to file
-            'maxFileSize': 10 * 1024 * 1024,  # Max file size in bytes (10MB default)
-            'enableRotation': True,  # Enable log rotation
-            'flushInterval': 30  # Flush interval in seconds
-        }
-        # Apply config overrides if provided
-        if configOverrides: self.config.update(configOverrides)
-        # Handle Configure Operations
-        self.loggerID = str(loggerID)
-        self.messageCount = 0
-        self.messageList = []
-        self.logStorage = {}
-        self.currentLogFile = None
-        self._sessionId = f"{time.time():.0f}_{os.getpid()}"
-        # Buffer management
-        self._buffer = []
-        self._bufferLock = threading.RLock()
-        self._fileWriteLock = threading.RLock()
-        self._lastFlushTime = time.time()
-        # Dynamic filename cache
-        self._filenameCache = {}
-        self._currentFilePath = None
-        # Establish logger
-        if setupLogger: self.logger = self._setupLogger()
-        else: self.logger = None
-        # Try to load external config if configHandle exists
+    __version__="1.0.0"
+    def __init__(self,loggerID:str,setupLogger:bool=True,configOverrides:Optional[dict]=None):
+        self.config={'level':3,'consoleIndentLevel':2,'filePipe':1,'fileName':'ALNv2021_%(DATE)_%(LOGGERNAME).json','filePath':os.path.join("ALNv2021","etc","logs"),'fileIndentLevel':2,'contextKeyMessageFormat':': ','contextCompileMessageFormat':', ','loggerFormat':'[%(levelname)s] (%(asctime)s) :: %(name)s :: %(message)s','logBufferSize':100,'maxFileSize':10*1024*1024,'enableRotation':True,'flushInterval':3,'enableConsoleLogging':False,'minimalLogFormat':'%(message)s','debugLogFormat':'[%(levelname)s] %(name)s: %(message)s'}
+        if configOverrides:self.config.update(configOverrides)
+        self.loggerID=str(loggerID)
+        self.messageCount=0
+        self.messageList=[]
+        self.logStorage={}
+        self._sessionId=f"{time.time():.0f}_{os.getpid()}"
+        self._buffer=[]
+        self._bufferLock=threading.RLock()
+        self._fileWriteLock=threading.RLock()
+        self._lastFlushTime=time.time()
+        self._filenameCache={}
+        self._currentFilePath=None
+        self._levelMap={0:logging.INFO,1:logging.DEBUG,2:logging.WARNING,3:logging.ERROR,4:logging.CRITICAL}
+        if setupLogger:
+            self.logger=extLogger(loggerID,consoleLevel=self._levelMap.get(self.config['level'],logging.INFO),consoleFormatter=coloredFormatter())
+            self.minimalLogger=extLogger(f"{loggerID}_minimal",consoleLevel=logging.WARNING,consoleFormatter=logging.Formatter(self.config['minimalLogFormat']))
+            self.debugLogger=extLogger(f"{loggerID}_debug",consoleLevel=logging.DEBUG,consoleFormatter=logging.Formatter(self.config['debugLogFormat']))
+        else:
+            self.logger=None;self.minimalLogger=None;self.debugLogger=None
         try:
-            self.confHandle = configHandle(noLogs=True)
+            self.confHandle=configHandle(noLogs=True)
             self.confHandle.readConfig()
             if self.confHandle.dataRead:
-                newConf = self.confHandle.index("logger")[1]
-                newConf = self.confHandle.relateData(newConf, self.config)
-                self.config = newConf
-        except (NameError, Exception) as e:
-            # configHandle doesn't exist or failed, use defaults
-            if self.logger: self.logger.debug(f"Using default config (configHandle not available): {e}")
-        # Start flush thread
-        self._stopFlushThread = threading.Event()
-        self._flushThread = threading.Thread(target=self._periodicFlush, daemon=True)
+                newConf=self.confHandle.index("logger")[1]
+                newConf=self.confHandle.relateData(newConf,self.config)
+                self.config=newConf
+        except(NameError,Exception) as e:
+            if self.logger:self.logger.debug(f"Using default config: {e}")
+        self._stopFlushThread=threading.Event()
+        self._flushThread=threading.Thread(target=self._periodicFlush,daemon=True)
         self._flushThread.start()
-        
-        # Register cleanup
         atexit.register(self.cleanup)
-
-    ## File Functionality
-    def _buildLogFileDynamic(self) -> tuple:
-        """
-        Build dynamic log filename based on template.
-        
-        Returns:
-            tuple: (filename, full_path)
-        """
-        targetFile = self.config['fileName']
-        targetPath = self.config['filePath']
-        
-        # Check cache first
-        cacheKey = f"{targetFile}_{self._sessionId}"
-        if cacheKey in self._filenameCache: return self._filenameCache[cacheKey]
-        if "%" not in str(targetFile):
-            result = (targetFile, os.path.join(targetPath, targetFile))
-            self._filenameCache[cacheKey] = result
+    
+    def _buildLogFileDynamic(self)->tuple:
+        targetFile=self.config['fileName']
+        targetPath=self.config['filePath']
+        cacheKey=f"{targetFile}_{self._sessionId}"
+        if cacheKey in self._filenameCache:return self._filenameCache[cacheKey]
+        if "%"not in str(targetFile):
+            result=(targetFile,os.path.join(targetPath,targetFile))
+            self._filenameCache[cacheKey]=result
             return result
-        # Build replacement dictionary
-        now = datetime.datetime.now()
-        replaceInfo = {
-            "TIMEFLOAT": str(time.time()),
-            "TIMESTAMP": now.strftime("%Y%m%d_%H%M%S"),
-            "DATE": now.strftime("%Y%m%d"),
-            "TIME": now.strftime("%H%M%S"),
-            "LOGGERNAME": self.loggerID,
-            "PID": str(os.getpid()),
-            "SESSION": self._sessionId,
-            "APP": os.path.basename(inspect.stack()[-1].filename).replace('.py', ''),
-            "HOSTNAME": os.environ.get('HOSTNAME', 'localhost')
-        }
-        # Replace placeholders
-        for k, v in replaceInfo.items():
-            pattern = f"%({k})"
-            if pattern in targetFile:
-                targetFile = targetFile.replace(pattern, str(v))
-        
-        result = (targetFile, os.path.join(targetPath, targetFile))
-        self._filenameCache[cacheKey] = result
+        now=datetime.datetime.now()
+        replaceInfo={"TIMEFLOAT":str(time.time()),"TIMESTAMP":now.strftime("%Y%m%d_%H%M%S"),"DATE":now.strftime("%Y%m%d"),"TIME":now.strftime("%H%M%S"),"LOGGERNAME":self.loggerID,"PID":str(os.getpid()),"SESSION":self._sessionId,"APP":os.path.basename(inspect.stack()[-1].filename).replace('.py',''),"HOSTNAME":os.environ.get('HOSTNAME','localhost')}
+        for k,v in replaceInfo.items():
+            pattern=f"%({k})"
+            if pattern in targetFile:targetFile=targetFile.replace(pattern,str(v))
+        result=(targetFile,os.path.join(targetPath,targetFile))
+        self._filenameCache[cacheKey]=result
         return result
-
-    def _checkRotation(self, filePath: str) -> bool:
-        """
-        Check if log file needs rotation.
-        
-        Args:
-            filePath (str): Path to log file
-            
-        Returns:
-            bool: True if rotation needed
-        """
-        if not self.config.get('enableRotation'):
-            return False
-        if not os.path.exists(filePath):
-            return False
-        fileSize = os.path.getsize(filePath)
-        maxSize = self.config.get('maxFileSize', 10 * 1024 * 1024)
-        return fileSize >= maxSize
-
-    def _rotateLog(self, filePath: str):
-        """Rotate log file when it gets too large."""
-        if not os.path.exists(filePath): return
-        
-        # Create rotation name
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        baseName, ext = os.path.splitext(filePath)
-        rotatedName = f"{baseName}_rotated_{timestamp}{ext}"
+    
+    def _checkRotation(self,filePath:str)->bool:
+        if not self.config.get('enableRotation'):return False
+        if not os.path.exists(filePath):return False
+        return os.path.getsize(filePath)>=self.config.get('maxFileSize',10*1024*1024)
+    
+    def _rotateLog(self,filePath:str):
+        if not os.path.exists(filePath):return
+        timestamp=datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        baseName,ext=os.path.splitext(filePath)
+        rotatedName=f"{baseName}_rotated_{timestamp}{ext}"
         try:
-            os.rename(filePath, rotatedName)
-            if self.logger: self.logger.info(f"Rotated log file to: {rotatedName}")
+            os.rename(filePath,rotatedName)
+            if self.logger:self.logger.info(f"Rotated log file to: {rotatedName}")
         except Exception as e:
-            if self.logger: self.logger.error(f"Failed to rotate log file: {e}")
-
+            if self.logger:self.logger.error(f"Failed to rotate log file: {e}")
+    
     def _periodicFlush(self):
-        """Periodically flush buffer to file."""
         while not self._stopFlushThread.is_set():
-            time.sleep(self.config.get('flushInterval', 30))
-            if time.time() - self._lastFlushTime >= self.config.get('flushInterval', 30):
-                self._flushBuffer()
-
+            time.sleep(self.config.get('flushInterval',30))
+            if time.time()-self._lastFlushTime>=self.config.get('flushInterval',30):self._flushBuffer()
+    
     def _flushBuffer(self):
-        """Flush buffer to file if needed."""
         with self._bufferLock:
-            if len(self._buffer) >= self.config.get('logBufferSize', 100):
-                self._fileWriteLog(force=True)
-            elif len(self._buffer) > 0 and \
-                 (time.time() - self._lastFlushTime) >= self.config.get('flushInterval', 30):
-                self._fileWriteLog(force=True)
-
+            if len(self._buffer)>=self.config.get('logBufferSize',100) or(len(self._buffer)>0 and(time.time()-self._lastFlushTime)>=self.config.get('flushInterval',30)):self._fileWriteLog(force=True)
+    
     def cleanup(self):
-        """Cleanup function for atexit."""
         self._stopFlushThread.set()
         self._fileWriteLog(force=True)
-        if self._flushThread.is_alive():
-            self._flushThread.join(timeout=2)
-
-    def flush(self):
-        """Public alias for flushing logs."""
-        self._fileWriteLog(force=True)
-
-    def _fileWriteLog(self, force: bool = False):
-        """
-        Updates/Creates The Log File with buffering support.
-        
-        Args:
-            force (bool): Force write even if buffer isn't full
-            
-        Returns:
-            None
-        """
-        if not self.config.get('filePipe'): return
+        if self._flushThread.is_alive():self._flushThread.join(timeout=2)
+    
+    def flush(self):self._fileWriteLog(force=True)
+    
+    def _fileWriteLog(self,force:bool=False):
+        if not self.config.get('filePipe'):return
         with self._bufferLock:
-            # Check if we should write
-            bufferSize = len(self._buffer)
-            if bufferSize == 0: return
-            shouldWrite = force or bufferSize >= self.config.get('logBufferSize', 100)
-            if not shouldWrite: return
-            # Copy buffer and clear it
-            messagesToWrite = self._buffer[:]
+            bufferSize=len(self._buffer)
+            if bufferSize==0:return
+            shouldWrite=force or bufferSize>=self.config.get('logBufferSize',100)
+            if not shouldWrite:return
+            messagesToWrite=self._buffer[:]
             self._buffer.clear()
-            self._lastFlushTime = time.time()
-        # Now write outside the buffer lock to avoid blocking
+            self._lastFlushTime=time.time()
         with self._fileWriteLock:
             try:
-                # Get file path
-                _, filePath = self._buildLogFileDynamic()        
-                # Check for rotation
-                if self._checkRotation(filePath):
-                    self._rotateLog(filePath)
-                # Ensure directory exists
-                dirName = os.path.dirname(filePath)
-                if dirName:
-                    os.makedirs(dirName, exist_ok=True)
-                # Load existing data
-                existingData = [0, [], {}]
-                if os.path.exists(filePath) and os.path.getsize(filePath) > 0:
+                _,filePath=self._buildLogFileDynamic()
+                if self._checkRotation(filePath):self._rotateLog(filePath)
+                dirName=os.path.dirname(filePath)
+                if dirName:os.makedirs(dirName,exist_ok=True)
+                existingData=[0,[],{}]
+                if os.path.exists(filePath)and os.path.getsize(filePath)>0:
                     try:
-                        with open(filePath, 'r') as f:
-                            existingData = json.load(f)
-                    except (IOError, json.JSONDecodeError) as e:
-                        if self.logger:
-                            self.logger.warning(f"Starting new log file due to: {e}")
-                # Validate existing data structure
-                if not isinstance(existingData, list) or len(existingData) != 3: existingData = [0, [], {}]
-                eDMessageCount, eDMessageList, eDLogStorage = existingData
-                # Process messages to write
+                        with open(filePath,'r')as f:existingData=json.load(f)
+                    except(IOError,json.JSONDecodeError)as e:
+                        if self.logger:self.logger.warning(f"Starting new log file due to: {e}")
+                if not isinstance(existingData,list)or len(existingData)!=3:existingData=[0,[],{}]
+                eDMessageCount,eDMessageList,eDLogStorage=existingData
                 for entry in messagesToWrite:
-                    eDMessageCount += 1
+                    eDMessageCount+=1
                     eDMessageList.append(entry)
-                    # Update storage by root
-                    root = entry.get('sourceMethodCall', 'unknown')
-                    if root not in eDLogStorage:
-                        eDLogStorage[root] = []
+                    root=entry.get('sourceMethodCall','unknown')
+                    if root not in eDLogStorage:eDLogStorage[root]=[]
                     eDLogStorage[root].append(entry)
-                
-                # Write updated data
-                dataToWrite = [eDMessageCount, eDMessageList, eDLogStorage]
-                with open(filePath, 'w') as f:
-                    json.dump(dataToWrite, f, indent=self.config.get('fileIndentLevel'))
-                
-                self._currentFilePath = filePath
-                
+                dataToWrite=[eDMessageCount,eDMessageList,eDLogStorage]
+                with open(filePath,'w')as f:json.dump(dataToWrite,f,indent=self.config.get('fileIndentLevel'))
+                self._currentFilePath=filePath
             except Exception as e:
                 if self.logger:
                     self.logger.error(f"Failed to write log: {e}")
                     self.logger.debug(traceback.format_exc())
-                # Put messages back in buffer on failure
-                with self._bufferLock:
-                    self._buffer = messagesToWrite + self._buffer
-
-    ## Returns
-    def _returnTimestamp(self) -> str:
-        """
-        Returns A Timestamp.
-        
-        Returns:
-            str: ISO format timestamp
-        """
-        return datetime.datetime.now().isoformat()
-
-    def _sourceCall(self) -> str:
-        """
-        Inspects the call stack to find the full call path of the function
-        that initiated the logPipe call.
-        
-        Returns:
-            str: The full call path with file info
-        """
+                with self._bufferLock:self._buffer=messagesToWrite+self._buffer
+    
+    def _returnTimestamp(self)->str:return datetime.datetime.now().isoformat()
+    
+    def _sourceCall(self)->str:
         try:
-            # Walk up the stack to find the actual caller
-            stack = inspect.stack()
-            # Find the frame that's not part of the logger
-            for i, frame in enumerate(stack):
-                if i < 2:  # Skip internal frames
-                    continue
-                frameInfo = frame
-                if 'loggerHandle' not in frameInfo.filename:
-                    functionName = frameInfo.function
-                    lineNumber = frameInfo.lineno
-                    fileName = os.path.basename(frameInfo.filename)
-                    # Try to get module info
-                    module = inspect.getmodule(frameInfo.frame)
-                    moduleName = module.__name__ if module else fileName.replace('.py', '')
-                    # Try to get class name if it's a method
-                    className = None
-                    if 'self' in frameInfo.frame.f_locals:
-                        className = frameInfo.frame.f_locals['self'].__class__.__name__
-                    elif 'cls' in frameInfo.frame.f_locals:
-                        className = frameInfo.frame.f_locals['cls'].__name__
-                    # Build full path
-                    if className:
-                        fullPath = f"{moduleName}.{className}.{functionName}"
-                    else:
-                        fullPath = f"{moduleName}.{functionName}"
+            stack=inspect.stack()
+            for i,frame in enumerate(stack):
+                if i<2:continue
+                frameInfo=frame
+                if'loggerHandle'not in frameInfo.filename:
+                    functionName=frameInfo.function
+                    lineNumber=frameInfo.lineno
+                    fileName=os.path.basename(frameInfo.filename)
+                    module=inspect.getmodule(frameInfo.frame)
+                    moduleName=module.__name__ if module else fileName.replace('.py','')
+                    className=None
+                    if'self'in frameInfo.frame.f_locals:className=frameInfo.frame.f_locals['self'].__class__.__name__
+                    elif'cls'in frameInfo.frame.f_locals:className=frameInfo.frame.f_locals['cls'].__name__
+                    if className:fullPath=f"{moduleName}.{className}.{functionName}"
+                    else:fullPath=f"{moduleName}.{functionName}"
                     return f"{fullPath}:{lineNumber}"
-            return "<unknown>"
-        except Exception as e:
-            return f"<error: {e}>"
-
-    def _getTraceback(self) -> Optional[str]:
-        """
-        Get current traceback if in exception context.
-        
-        Returns:
-            str: Formatted traceback or None
-        """
-        excInfo = sys.exc_info()
-        if excInfo[0] is not None:
-            return ''.join(traceback.format_exception(*excInfo))
-        return None
-
-    ## Append Operations
-    def _appendExtendedContext(self, context: Dict[str, Any]) -> str:
-        """
-        Creates A String From A Dictionary Based Off Wanted Formats.
-        
-        Args:
-            context (dict): {'key':'message',...}
-            
-        Returns:
-            str: Compiled string.
-        """
-        if not isinstance(context, dict): raise TypeError(f"Context must be dict, got: {type(context).__name__}")
-        if len(context) == 0:
-            return ""
-        contextStrings = []
-        contextFormat = self.config.get('contextKeyMessageFormat', ': ')
-        for k, v in context.items():
-            # Handle various value types
-            if isinstance(v, (dict, list)):
-                v = json.dumps(v, separators=(',', ':'))
+            return"<unknown>"
+        except Exception as e:return f"<error: {e}>"
+    
+    def _getTraceback(self)->Optional[str]:
+        excInfo=sys.exc_info()
+        return''.join(traceback.format_exception(*excInfo))if excInfo[0]is not None else None
+    
+    def _appendExtendedContext(self,context:Dict[str,Any])->str:
+        if not isinstance(context,dict):raise TypeError(f"Context must be dict, got: {type(context).__name__}")
+        if len(context)==0:return""
+        contextStrings=[]
+        contextFormat=self.config.get('contextKeyMessageFormat',': ')
+        for k,v in context.items():
+            if isinstance(v,(dict,list)):v=json.dumps(v,separators=(',',':'))
             contextStrings.append(f"{k}{contextFormat}{v}")
-        
-        return self.config.get('contextCompileMessageFormat', ', ').join(contextStrings)
-
-    ## Level Operations
-    def _levelResolveLogger(self, loggingLevel: int):
-        """
-        Resolves The Proper Callable Function For `self.logger`.
-        
-        Args:
-            loggingLevel (int): Logging Level (raw from logging)
-            
-        Returns:
-            logging method or None
-        """
-        if not self.logger or not isinstance(loggingLevel, int):
-            return None
-        
-        levelMap = {
-            10: self.logger.debug,
-            20: self.logger.info,
-            30: self.logger.warning,
-            40: self.logger.error,
-            50: self.logger.critical
-        }
-        
-        return levelMap.get(loggingLevel, self.logger.info)
-
-    def _levelFetch(self, level: Union[str, int, None] = None) -> list:
-        """
-        Returns Logging Module Level Handles.
-        
-        Args:
-            level (int, str, optional): Logging Level
-            
-        Returns:
-            list: [<logging level>, <callable>]
-        """
-        level = level if level is not None else self.config.get('level', 2)
-        
-        if isinstance(level, str):
-            level = level.lower()
-            levelMap = {
-                'i': 0, 'info': 0,
-                'd': 1, 'debug': 1,
-                'w': 2, 'warning': 2, 'warn': 2,
-                'e': 3, 'error': 3,
-                'c': 4, 'critical': 4
-            }
-            level = levelMap.get(level, 2)
-        levels = {
-            0: [logging.INFO, logging.info],
-            1: [logging.DEBUG, logging.debug],
-            2: [logging.WARNING, logging.warning],
-            3: [logging.ERROR, logging.error],
-            4: [logging.CRITICAL, logging.critical]
-        }
-        return levels.get(level, [logging.INFO, logging.info])
-
-    ## Logger Functionality
-    def _setupLogger(self) -> logging.Logger:
-        """
-        Creates The `logger` Object From `logging`.
-        
-        Returns:
-            logging.Logger object
-        """
-        # Get or create logger
-        logger = logging.getLogger(self.loggerID)
-        # Clear existing handlers to avoid duplicates
-        logger.handlers.clear()
-        logger.setLevel(self._levelFetch()[0])
-        logger.propagate = False  # Prevent propagation to root logger
-        # Create console handler
-        consoleHandler = logging.StreamHandler()
-        consoleHandler.setLevel(self._levelFetch()[0])
-        # Create formatter
-        formatter = logging.Formatter(self.config.get('loggerFormat'))
-        consoleHandler.setFormatter(formatter)
-        # Add the handler
-        logger.addHandler(consoleHandler)
-        return logger
-
-    ## Main Functionality
-    def logPipe(self,
-                r: str,
-                m: Union[str, dict, Any],
-                loggingLevel: Union[int, str] = None,
-                extendedContext: Optional[Dict[str, Any]] = None,
-                forcePrintToScreen: bool = False,
-                includeTraceback: bool = False) -> None:
-        """
-        Central Log Pipe with improved buffering.
-        
-        Args:
-            r (str): Root object for the message (calling function)
-            m (str, dict, Any): The Message (can be JSON string or any object)
-            loggingLevel (int, str, optional): Logging Level
-            extendedContext (Dict[str,Any], optional): Extended Context
-            forcePrintToScreen (bool, optional): Force print to screen
-            includeTraceback (bool, optional): Include traceback if available
-            
-        Returns:
-            None
-        """
-        loggingLevel = loggingLevel if loggingLevel else 'debug'
-        
-        # Process message content
-        messageContent = m
-        if isinstance(m, str):
-            try:
-                messageContent = json.loads(m)
-            except json.JSONDecodeError:
-                pass
-        elif not isinstance(m, (str, dict, list)):
-            messageContent = str(m)
-        
-        # Create log entry
+        return self.config.get('contextCompileMessageFormat',', ').join(contextStrings)
+    
+    def _levelFetch(self,level:Union[str,int,None]=None)->int:
+        level=level if level is not None else self.config.get('level',1)
+        if isinstance(level,str):
+            level=level.lower()
+            levelMap={'i':0,'info':0,'d':1,'debug':1,'w':2,'warning':2,'warn':2,'e':3,'error':3,'c':4,'critical':4}
+            level=levelMap.get(level,1)
+        return self._levelMap.get(level,logging.DEBUG)
+    
+    def _setupLogger(self)->extLogger:
+        return extLogger(self.loggerID,consoleLevel=self._levelFetch(),consoleFormatter=coloredFormatter())
+    
+    def getStats(self)->dict:
         with self._bufferLock:
-            self.messageCount += 1
-            logEntry = {
-                'logID': self.messageCount,
-                'timestamp': self._returnTimestamp(),
-                'sourceMethodCall': str(r),
-                'sourceFunction': self._sourceCall(),
-                'sourceLoggerName': str(self.loggerID),
-                'alienInstanceID': id(self),
-                'alienProcessID': os.getpid(),
-                'alienThreadID': threading.get_ident(),
-                'alienThreadName': threading.current_thread().name,
-                'message': messageContent
-            }
-            
-            # Add extended context if provided
-            if extendedContext:
-                logEntry['extendedContext'] = self._appendExtendedContext(extendedContext)
-            
-            # Add traceback if requested and available
+            stats={'loggerID':self.loggerID,'messageCount':self.messageCount,'bufferSize':len(self._buffer),'currentLogFile':self._currentFilePath,'sessionId':self._sessionId,'storageRoots':list(self.logStorage.keys()),'config':self.config}
+        return stats
+    
+    def clearBuffer(self):
+        with self._bufferLock:self._buffer.clear()
+    
+    def setLevel(self,level:Union[str,int]):
+        self.config['level']=level
+        if self.logger:self.logger.logger.setLevel(self._levelFetch(level))
+    
+    def queryLogs(self,sourceFilter:Optional[str]=None,levelFilter:Optional[int]=None,limit:Optional[int]=None)->list:
+        with self._bufferLock:
+            results=self.messageList[:]
+        if sourceFilter:results=[e for e in results if sourceFilter.lower()in str(e.get('sourceMethodCall','')).lower()]
+        if limit:results=results[-limit:]
+        return results
+    
+    
+    def searchLogs(self,keyword:str,searchFields:Optional[list]=None)->list:
+        searchFields=searchFields or['message','sourceMethodCall','extendedContext']
+        with self._bufferLock:
+            results=[]
+            for entry in self.messageList:
+                for field in searchFields:
+                    value=str(entry.get(field,''))
+                    if keyword.lower()in value.lower():
+                        results.append(entry)
+                        break
+        return results
+    
+    def getLogsBySource(self,sourceKey:str)->list:
+        with self._bufferLock:
+            return self.logStorage.get(sourceKey,[])
+        
+    def exportLogs(self,filePath:str,format:str='json',sourceFilter:Optional[str]=None)->bool:
+        try:
+            logs=self.queryLogs(sourceFilter=sourceFilter)
+            dirName=os.path.dirname(filePath)
+            if dirName:os.makedirs(dirName,exist_ok=True)
+            if format.lower()=='json':
+                with open(filePath,'w')as f:json.dump(logs,f,indent=self.config['fileIndentLevel'])
+            elif format.lower()=='csv':
+                import csv
+                if not logs:return False
+                keys=logs[0].keys()
+                with open(filePath,'w',newline='')as f:
+                    writer=csv.DictWriter(f,fieldnames=keys)
+                    writer.writeheader()
+                    writer.writerows(logs)
+            else:return False
+            if self.logger:self.logger.info(f"Logs exported to {filePath}")
+            return True
+        except Exception as e:
+            if self.logger:self.logger.error(f"Export failed: {e}")
+            return False
+        
+    def clearLogs(self):
+        with self._bufferLock:
+            self.messageList.clear()
+            self.logStorage.clear()
+            self.messageCount=0
+
+    def getLogCount(self)->int:
+        with self._bufferLock:
+            return len(self.messageList)
+        
+    def getSourceList(self)->list:
+        with self._bufferLock:
+            return list(self.logStorage.keys())
+        
+    def getMemoryUsage(self)->dict:
+        with self._bufferLock:
+            import sys
+            msgListSize=sys.getsizeof(self.messageList)
+            logStorageSize=sys.getsizeof(self.logStorage)
+            bufferSize=sys.getsizeof(self._buffer)
+        return{'messageList':msgListSize,'logStorage':logStorageSize,'buffer':bufferSize,'total':msgListSize+logStorageSize+bufferSize}
+    
+    def minimalLog(self,r:str,m:Union[str,dict,Any],extendedContext:Optional[Dict[str,Any]]=None)->None:
+        if self.minimalLogger:self.minimalLogger.warning(f"[MIN] {r}: {m}")
+        self.logPipe(r,m,loggingLevel='warning',extendedContext=extendedContext)
+    
+    def debugLog(self,r:str,m:Union[str,dict,Any],extendedContext:Optional[Dict[str,Any]]=None,includeTraceback:bool=True)->None:
+        if self.debugLogger:self.debugLogger.debug(f"[DBG] {r}: {m}")
+        self.logPipe(r,m,loggingLevel='debug',extendedContext=extendedContext,includeTraceback=includeTraceback)
+    
+    def errorLog(self,r:str,m:Union[str,dict,Any],extendedContext:Optional[Dict[str,Any]]=None)->None:
+        self.logPipe(r,m,loggingLevel='error',extendedContext=extendedContext,includeTraceback=True)
+    
+    def warningLog(self,r:str,m:Union[str,dict,Any],extendedContext:Optional[Dict[str,Any]]=None)->None:
+        self.logPipe(r,m,loggingLevel='warning',extendedContext=extendedContext)
+    
+    def infoLog(self,r:str,m:Union[str,dict,Any],extendedContext:Optional[Dict[str,Any]]=None)->None:
+        self.logPipe(r,m,loggingLevel='info',extendedContext=extendedContext)
+    
+    def criticalLog(self,r:str,m:Union[str,dict,Any],extendedContext:Optional[Dict[str,Any]]=None)->None:
+        self.logPipe(r,m,loggingLevel='critical',extendedContext=extendedContext,includeTraceback=True)
+    
+    def batchLog(self,entries:list)->None:
+        for r,m,*opts in entries:
+            loggingLevel=opts[0]if opts else'debug'
+            extendedContext=opts[1]if len(opts)>1 else None
+            self.logPipe(r,m,loggingLevel=loggingLevel,extendedContext=extendedContext)
+    
+    def getLogsSince(self,secondsAgo:int)->list:
+        try:
+            cutoffTime=time.time()-secondsAgo
+            with self._bufferLock:
+                results=[]
+                for entry in self.messageList:
+                    logTime=datetime.datetime.fromisoformat(entry['timestamp']).timestamp()
+                    if logTime>=cutoffTime:results.append(entry)
+            return results
+        except Exception as e:
+            if self.logger:self.logger.error(f"Failed to get logs since: {e}")
+            return[]
+    
+    def getPerformanceMetrics(self)->dict:
+        with self._bufferLock:
+            metrics={'totalLogs':self.messageCount,'bufferSize':len(self._buffer),'messageListSize':len(self.messageList),'uniqueSources':len(self.logStorage),'sessionDuration':time.time()-float(self._sessionId.split('_')[0]),'bufferUtilization':len(self._buffer)/self.config['logBufferSize']*100}
+        return metrics
+    
+    def setConsoleLevel(self,level:Union[str,int]):
+        self.config['level']=level
+        if self.logger:self.logger.logger.setLevel(self._levelFetch(level))
+        if self.debugLogger:self.debugLogger.logger.setLevel(logging.DEBUG)
+        if self.minimalLogger:self.minimalLogger.logger.setLevel(logging.WARNING)
+    
+    def disableConsoleLogging(self):self.config['enableConsoleLogging']=False
+    
+    def enableConsoleLogging(self):self.config['enableConsoleLogging']=True
+    
+    def setBufferSize(self,size:int):self.config['logBufferSize']=max(10,size)
+    
+    def setFlushInterval(self,seconds:float):self.config['flushInterval']=max(0.5,seconds)
+    
+    def getLastLogs(self,count:int=10)->list:
+        with self._bufferLock:
+            return self.messageList[-count:] if count>0 else[]
+        
+    def getLogsByLevel(self,level:str)->list:
+        levelMap={'debug':logging.DEBUG,'info':logging.INFO,'warning':logging.WARNING,'error':logging.ERROR,'critical':logging.CRITICAL}
+        levelInt=levelMap.get(level.lower(),logging.INFO)
+        with self._bufferLock:
+            return[e for e in self.messageList if e.get('level')==levelInt]
+    
+    def printLogSummary(self):
+        stats=self.getStats()
+        metrics=self.getPerformanceMetrics()
+        print(f"\n{'='*60}")
+        print(f"Logger: {stats['loggerID']} | Session: {stats['sessionId']}")
+        print(f"Total Messages: {stats['messageCount']} | Buffer: {metrics['bufferUtilization']:.1f}%")
+        print(f"Unique Sources: {metrics['uniqueSources']} | Duration: {metrics['sessionDuration']:.1f}s")
+        print(f"Current File: {stats['currentLogFile']}")
+        print(f"{'='*60}\n")
+    
+    def rotateBufferSnapshot(self)->list:
+        with self._bufferLock:
+            snapshot=self._buffer[:]
+            self._buffer.clear()
+        return snapshot
+    
+    def validateLogIntegrity(self)->tuple:
+        with self._bufferLock:
+            missing=[]
+            for i in range(1,self.messageCount+1):
+                found=any(log['logID']==i for log in self.messageList)
+                if not found:missing.append(i)
+        return(len(missing)==0,missing)
+    
+    def rebuildLogIndex(self):
+        try:
+            with self._bufferLock:
+                newIndex={}
+                for entry in self.messageList:
+                    source=entry.get('sourceMethodCall','unknown')
+                    if source not in newIndex:newIndex[source]=[]
+                    newIndex[source].append(entry)
+                self.logStorage=newIndex
+            if self.logger:self.logger.info("Log index rebuilt successfully")
+            return True
+        except Exception as e:
+            if self.logger:self.logger.error(f"Failed to rebuild index: {e}")
+            return False
+        
+    def getContextualLogs(self,sourceMethod:str,contextLimit:int=5)->dict:
+        with self._bufferLock:
+            allLogs=self.messageList[:]
+        sourceIndex=next((i for i,log in enumerate(allLogs)if log['sourceMethodCall']==sourceMethod),-1)
+        if sourceIndex==-1:return{'found':False,'logs':[]}
+        start=max(0,sourceIndex-contextLimit)
+        end=min(len(allLogs),sourceIndex+contextLimit+1)
+        return{'found':True,'centerLog':allLogs[sourceIndex],'contextLogs':allLogs[start:end],'position':sourceIndex-start}
+    
+    def filterLogsByTime(self,startTime:str,endTime:str)->list:
+        try:
+            startDt=datetime.datetime.fromisoformat(startTime).timestamp()
+            endDt=datetime.datetime.fromisoformat(endTime).timestamp()
+            with self._bufferLock:
+                results=[]
+                for entry in self.messageList:
+                    logTime=datetime.datetime.fromisoformat(entry['timestamp']).timestamp()
+                    if startDt<=logTime<=endDt:results.append(entry)
+            return results
+        except Exception as e:
+            if self.logger:self.logger.error(f"Time filter failed: {e}")
+            return[]
+    
+    def getAggregatedStats(self)->dict:
+        with self._bufferLock:
+            stats={'totalMessages':self.messageCount,'totalSources':len(self.logStorage),'messagesInBuffer':len(self._buffer),'messagesInMemory':len(self.messageList)}
+            levelCounts={logging.DEBUG:0,logging.INFO:0,logging.WARNING:0,logging.ERROR:0,logging.CRITICAL:0}
+            for entry in self.messageList:
+                levelCounts[entry.get('level',logging.INFO)]+=1
+            stats['levelDistribution']=levelCounts
+        return stats
+    
+    def logStackTrace(self,r:str,msg:str="Exception occurred"):
+        tb=self._getTraceback()
+        self.logPipe(r,msg,loggingLevel='error',includeTraceback=True)
+        if self.logger:self.logger.error(f"Traceback:\n{tb}")
+
+    def asyncLog(self,r:str,m:Union[str,dict,Any],loggingLevel:Union[int,str]=None,extendedContext:Optional[Dict[str,Any]]=None):
+        thread=threading.Thread(target=self.logPipe,args=(r,m,loggingLevel,extendedContext))
+        thread.daemon=True
+        thread.start()
+    
+    def getLogDensity(self)->dict:
+        with self._bufferLock:
+            if not self.messageList:return{'density':0,'avgPerSource':0}
+            density=len(self.messageList)/max(1,len(self.logStorage))
+            avgPerSource=len(self.messageList)/max(1,len(self.logStorage))
+        return{'density':density,'avgPerSource':avgPerSource,'totalUnique':len(self.logStorage)}
+    def sanitizeMessage(self,m:Any)->Any:
+        if isinstance(m,dict):
+            return{k:self.sanitizeMessage(v)for k,v in m.items()}
+        elif isinstance(m,list):
+            return[self.sanitizeMessage(item)for item in m]
+        elif isinstance(m,str):
+            return m.replace('\n','\\n').replace('\r','\\r').replace('\t','\\t')
+        return m
+    
+    def secureLog(self,r:str,m:Union[str,dict,Any],loggingLevel:Union[int,str]=None,extendedContext:Optional[Dict[str,Any]]=None):
+        sanitized=self.sanitizeMessage(m)
+        sanitizedContext={k:self.sanitizeMessage(v)for k,v in(extendedContext or{}).items()}
+        self.logPipe(r,sanitized,loggingLevel=loggingLevel,extendedContext=sanitizedContext)
+    
+    def getSourceStats(self,source:str)->dict:
+        with self._bufferLock:
+            sourceLogs=self.logStorage.get(source,[])
+        if not sourceLogs:return{'source':source,'count':0,'stats':{}}
+        return{'source':source,'count':len(sourceLogs),'firstLog':sourceLogs[0]['timestamp'],'lastLog':sourceLogs[-1]['timestamp'],'messages':len(sourceLogs)}
+    
+    def compareLogRanges(self,startIndex:int,endIndex:int)->dict:
+        with self._bufferLock:
+            if endIndex>len(self.messageList):endIndex=len(self.messageList)
+            if startIndex<0:startIndex=0
+            rangeLogs=self.messageList[startIndex:endIndex]
+        if not rangeLogs:return{'range':(startIndex,endIndex),'count':0,'comparison':{}}
+        sources={}
+        for log in rangeLogs:
+            src=log['sourceMethodCall']
+            sources[src]=sources.get(src,0)+1
+        return{'range':(startIndex,endIndex),'count':len(rangeLogs),'sourceDistribution':sources}
+    
+    def getLogHeader(self)->dict:
+        return{'loggerID':self.loggerID,'version':self.__version__,'sessionId':self._sessionId,'config':self.config}
+    
+    def printLogsTable(self,count:int=10,showFields:Optional[list]=None):
+        showFields=showFields or['logID','timestamp','sourceMethodCall','message']
+        logs=self.getLastLogs(count)
+        if not logs:print("No logs to display");return
+        print(f"\n{'='*120}")
+        print('|'.join(f"{field:30}"for field in showFields))
+        print(f"{'-'*120}")
+        for log in logs:
+            row=[str(log.get(field,'N/A'))[:30]for field in showFields]
+            print('|'.join(f"{val:30}"for val in row))
+        print(f"{'='*120}\n")
+    
+    def getExceptionLogs(self)->list:
+        with self._bufferLock:
+            return[log for log in self.messageList if'traceback'in log]
+    
+    def getErrorAndCriticalLogs(self)->list:
+        with self._bufferLock:
+            return[log for log in self.messageList if log.get('level')in(logging.ERROR,logging.CRITICAL)]
+    
+    def getHighFrequencySources(self,topN:int=5)->list:
+        with self._bufferLock:
+            if not self.logStorage:return[]
+            sourceFreq=[(source,len(logs))for source,logs in self.logStorage.items()]
+            sourceFreq.sort(key=lambda x:x[1],reverse=True)
+        return sourceFreq[:topN]
+    
+    def dumpRawLogs(self)->str:
+        with self._bufferLock:
+            return json.dumps({'messageList':self.messageList,'logStorage':{k:len(v)for k,v in self.logStorage.items()}},indent=2)
+        
+    def logPipe(self,r:str,m:Union[str,dict,Any],loggingLevel:Union[int,str]=None,extendedContext:Optional[Dict[str,Any]]=None,forcePrintToScreen:bool=False,includeTraceback:bool=False)->None:
+        loggingLevel=loggingLevel if loggingLevel else'debug'
+        messageContent=m
+        if isinstance(m,str):
+            try:messageContent=json.loads(m)
+            except json.JSONDecodeError:pass
+        elif not isinstance(m,(str,dict,list)):messageContent=str(m)
+        with self._bufferLock:
+            self.messageCount+=1
+            logEntry={'logID':self.messageCount,'timestamp':self._returnTimestamp(),'sourceMethodCall':str(r),'sourceFunction':self._sourceCall(),'sourceLoggerName':str(self.loggerID),'alienInstanceID':id(self),'alienProcessID':os.getpid(),'alienThreadID':threading.get_ident(),'alienThreadName':threading.current_thread().name,'message':messageContent}
+            if extendedContext:logEntry['extendedContext']=self._appendExtendedContext(extendedContext)
             if includeTraceback:
-                tb = self._getTraceback()
-                if tb:
-                    logEntry['traceback'] = tb
-            
-            # Add to buffer instead of immediate file write
+                tb=self._getTraceback()
+                if tb:logEntry['traceback']=tb
             self._buffer.append(logEntry)
-            
-            # Update in-memory storage
-            if str(r) not in self.logStorage:
-                self.logStorage[str(r)] = []
+            if str(r)not in self.logStorage:self.logStorage[str(r)]=[]
             self.logStorage[str(r)].append(logEntry)
             self.messageList.append(logEntry)
-        
-        # Handle console output
-        if self.logger:
-            # Create a simplified message for console
-            consoleMsg = f"{r}: {json.dumps(messageContent) if isinstance(messageContent, (dict, list)) else messageContent}"
-            loggerRoot = self._levelResolveLogger(self._levelFetch(loggingLevel)[0])
-            if loggerRoot:
-                loggerRoot(consoleMsg)
-        
-        # Force print if requested
-        if forcePrintToScreen:
-            logEntryDumped = json.dumps(logEntry, indent=self.config.get('consoleIndentLevel'))
-            print(logEntryDumped, '\n')
-        
-                # Check if buffer should be flushed
+        if self.config.get('enableConsoleLogging')and self.logger:
+            consoleMsg=f"{r}: {json.dumps(messageContent)if isinstance(messageContent,(dict,list))else messageContent}"
+            levelInt=self._levelFetch(loggingLevel)
+            if levelInt==logging.DEBUG:self.debugLogger.debug(consoleMsg)
+            elif levelInt==logging.INFO:self.logger.info(consoleMsg)
+            elif levelInt==logging.WARNING:self.logger.warning(consoleMsg)
+            elif levelInt==logging.ERROR:self.logger.error(consoleMsg)
+            elif levelInt==logging.CRITICAL:self.logger.critical(consoleMsg)
+            if levelInt==logging.WARNING or levelInt==logging.CRITICAL:self.minimalLogger.warning(consoleMsg)
+        if forcePrintToScreen:print(json.dumps(logEntry,indent=self.config.get('consoleIndentLevel')),'\n')
         self._flushBuffer()
-        
-        return
-
-    def getStats(self) -> dict:
-        """
-        Get statistics about the logger.
-        
-        Returns:
-            dict: Logger statistics
-        """
-        with self._bufferLock:
-            stats = {
-                'loggerID': self.loggerID,
-                'messageCount': self.messageCount,
-                'bufferSize': len(self._buffer),
-                'currentLogFile': self._currentFilePath,
-                'sessionId': self._sessionId,
-                'storageRoots': list(self.logStorage.keys()),
-                'config': self.config
-            }
-        return stats
-
-    def clearBuffer(self):
-        """Clear the current buffer without writing."""
-        with self._bufferLock:
-            self._buffer.clear()
-
-    def setLevel(self, level: Union[str, int]):
-        """
-        Change logging level dynamically.
-        
-        Args:
-            level: New logging level
-        """
-        self.config['level'] = level
-        if self.logger:
-            self.logger.setLevel(self._levelFetch(level)[0])
-            for handler in self.logger.handlers:
-                handler.setLevel(self._levelFetch(level)[0])

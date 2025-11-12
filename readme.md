@@ -5,6 +5,10 @@
 ![Network Traffic Obfusction](https://img.shields.io/badge/Network%20Traffic%20Obfuscation-green)
 ![Alien Framework Generation 2 Version 0.2.1](https://img.shields.io/badge/Alien%20Framework%20Generation%202%20Version%200.2.1-blue)
 
+# ALNv2021 (Generation 2 version 0.2.1)
+
+## Alien
+
 The _Alien Framework_ is a project designed over years of my personal growth and developmental expierence, I have designed it to be a centralized toolkit for Cybersecurity/OffensiveSecurity/OperationSecurity operations, software development and general purpose. _Alien_ offers tools such as:
 
 * `Alien Syntax`
@@ -61,6 +65,22 @@ Etc....
   - [Expressions](#interpreter-expressions)
 - [configHandle Module (confHandle)](#confighandle-module)
 - [loggerHandle Module (logger)](#loggerhandle-module)
+    - [Configuration](#loggerhandle-configurations)
+        - [Config](#loggerhandle-config)
+        - [Setting Example](#loggerhandle-example)
+    - [Basic Usage](#loggerhandle-basic-usage)
+    - [Operations](#loggerhandle-operations)
+        - [Custom Log Functions](#loggerhandle-customs)
+        - [Verbosity](#loggerhandle-verbosity-mode)
+        - [Non-Verbosity](#loggerhandle-non-verbosity-mode)
+        - [Batched Logging](#loggerhandle-batched-operations)
+        - [Async Logging](#loggerhandle-asynchronous-logging)
+        - [Querying Logs](#loggerhandle-queries)
+        - [Searching Logs](#loggerhandle-searches)
+        - [Time Filtering](#loggerhandle-time-filtering)
+        - [Analytics](#loggerhandle-analytics)
+        - [Exporting](#loggerhandle-exporting)
+        - [Custom Colorization](#loggerhandle-customized-colors)
 - [Process (Process & Threads)](#process-module)
   - [Starting, Stopping & Removing Processes](#process-starting-stopping--removing-processes)
   - [Appending Subprocesses](#process-appending-subprocesses)
@@ -1240,7 +1260,6 @@ Default Open & Close:
 }
 ```
 
-## configHande Module
 ## configHandle Module
 
 ```python
@@ -1265,30 +1284,315 @@ This is used as the central configuration for alien, thus you can (and sometimes
 > (**CRITICAL-INFORMATION**)
 > An identified performance bottleneck is related to the `loggerHandle` and its interaction with the `interpreterHandle`, especially concerning file I/O operations during script execution. While optimizations are in progress, it is highly recommended to use separate logger instances for the `interpreterHandle` and other modules to mitigate performance degradation.
 
+### loggerHandle Configurations 
+
+#### loggerhandle Config
+
+```python
+# loggerHandle.__init__
+self.config={
+    'level':3, # Print out level 
+    'consoleIndentLevel':2, # Indentation level
+    'filePipe':1, # Write to file (if 1)
+    'fileName':'ALNv2021_%(DATE)_%(LOGGERNAME).json', # File name
+    'filePath':os.path.join("ALNv2021","etc","logs"), # File Path
+    'fileIndentLevel':2, # File indentation
+    'contextKeyMessageFormat':': ', # Extended context key format `v = [{k}: {v} for kv in eC.items()]'
+    'contextCompileMessageFormat':', ', # Final compiled message `v = ', '.join(i for i in v)`
+    'loggerFormat':'[%(levelname)s] (%(asctime)s) :: %(name)s :: %(message)s', # Formatter (internal)
+    'logBufferSize':100, # Log buffer size
+    'maxFileSize':10*1024*1024, # Max sile of log file (10MB)
+    'enableRotation':True, # Enable log rotations
+    'flushInterval':3, # Flush on '3'
+    'enableConsoleLogging':False, # Console logging variable (false for silent:Default)
+    'minimalLogFormat':'%(message)s', # Minimal log format
+    'debugLogFormat':'[%(levelname)s] %(name)s: %(message)s' # Debugging log format
+}
+```
+
+#### loggerHandle Example
+
+```python
+logger = loggerHandle.loggerHandle('exampleApp',configOverrides={})
+logger.setBufferSize(500)  # Buffer 500 messages before writing
+logger.setFlushInterval(5)  # Flush every 5 seconds
+# Verbose vs Non-Verbose Profiles
+class LogProfiles:
+    @staticmethod
+    def verbose(logger_instance):
+        logger_instance.setConsoleLevel('debug')
+        logger_instance.enableConsoleLogging()
+        logger_instance.config['level'] = 1
+        logger_instance.printLogSummary()
+    
+    @staticmethod
+    def production(logger_instance):
+        logger_instance.setConsoleLevel('error')
+        logger_instance.disableConsoleLogging()
+        logger_instance.config['level'] = 3
+    
+    @staticmethod
+    def minimal(logger_instance):
+        logger_instance.setConsoleLevel('critical')
+        logger_instance.disableConsoleLogging()
+        logger_instance.config['level'] = 4
+# *--- Usage ---*
+LogProfiles.verbose(logger)  # Full debug output
+LogProfiles.production(logger)  # Only errors to console
+LogProfiles.minimal(logger)  # Critical only
+```
+
+### loggerHandle Basic Usage
 
 ```python
 import ALNv2021 as alien
 logger = alien.loggerHandle(
-    loggerID:str,
-    setupLogger:bool=True
-)
+    'exampleLoggerObject', # LoggerID
+    setupLogger=True,  # Setup the logger (default::`logging` functions else just `print`)
+    configOverride={} # Configuration overrides
+);logger.logPipe(
+    'rootFunction',
+    'message',
+    loggingLevel=2, # Warning, check the levels accorsingly 
+    extendedContext={'thisKey':'thisMessage'}, # Any added context (used mainly for *args/**kwargs)
+    forcePrintToScreen=True, # Print to screen (May have bugs with the other `logging` functionality)
+    includeTraceback=True # Include the traceback
+) # 
 ```
-
-The main pipe for the `logger` is `logPipe`
 
 ```python
-logger.logPipe(
-    r:str, # Root of the message (usually the calling function)
-    m:str, # Message
-    loggingLevel:int=None, # 0..3 logging module levels (default: 2)
-    extendedContext:Dict[str,str], # Extended information for the message
-    forcePrintToScreen:bool=False # Prints if true
-)
+logger.logPipe('module.function', 'User logged in', loggingLevel='info') # Normal
+logger.logPipe('module.function', {'user_id': 123, 'action': 'login'}, loggingLevel='debug') # Debugging
 ```
 
-Since the `logger` is the central logging object for alien, you can pass the object (and sometimes have to) other objects inside of alien. This allows for proper traceback inside
-the logs. The default log directory it `ALNv2021\\logs\\`.
+### loggerHandle Operations 
 
+#### loggerHandle Customs
+
+```python
+logger.debugLog('auth.validate', 'Checking credentials', extendedContext={'user': 'john', 'method': 'oauth'})
+logger.minimalLog('core.init', 'System started')
+logger.errorLog('database.query', 'Connection failed', includeTraceback=True)
+logger.warningLog('cache.miss', 'Cache unavailable')
+logger.infoLog('scheduler.tick', 'Task executed')
+logger.criticalLog('security.breach', 'Unauthorized access detected')
+```
+
+#### loggerHandle Verbosity Mode
+
+```python
+logger.setConsoleLevel('debug')  # Show all levels
+logger.config['level'] = 1  # DEBUG level
+logger.enableConsoleLogging()
+logger.debugLog('system.verbose', 'Detailed trace info', extendedContext={'step': 1, 'status': 'running'})
+```
+
+#### loggerHandle Non-Verbosity Mode
+
+```python
+logger.setConsoleLevel('error')  # Only errors and critical
+logger.minimalLogger.logger.setLevel(logging.CRITICAL)  # Suppress minimal logs
+logger.disableConsoleLogging()  # Disable console entirely
+# Still logs to file, just not to console
+logger.logPipe('module.func', 'This goes to file only', loggingLevel='info')
+```
+
+#### loggerHandle Batched Operations
+
+```python
+logger.batchLog([
+    ('auth.login', 'User attempt', 'info', {'user': 'alice'}),
+    ('auth.validate', 'Password check', 'debug', {'method': 'hash'}),
+    ('auth.success', 'Access granted', 'info', {'role': 'admin'}),
+])
+```
+
+#### loggerHandle Asynchronous Logging 
+
+```python
+logger.asyncLog('heavy.operation', {'data': 'large_dataset'}, 'debug')
+```
+
+#### loggerHandle Queries
+
+```python
+recentLogs = logger.getLastLogs(5)
+debugLogs = logger.queryLogs(sourceFilter='auth', limit=10)
+exceptions = logger.getExceptionLogs()
+errors = logger.getErrorAndCriticalLogs()
+```
+
+#### loggerHandle Searches
+
+```python
+results = logger.searchLogs('timeout', searchFields=['message', 'extendedContext'])
+authLogs = logger.getLogsBySource('auth.validate')
+```
+
+#### loggerHandle Time Filtering
+
+```python
+lastHour = logger.getLogsSince(3600)
+logsRanged = logger.filterLogsByTime('2024-01-01T00:00:00', '2024-01-01T23:59:59')
+```
+
+#### loggerHandle Analytics
+
+```python
+stats = logger.getStats()
+metrics = logger.getPerformanceMetrics()
+density = logger.getLogDensity()
+topSources = logger.getHighFrequencySources(topN=5)
+sourceStats = logger.getSourceStats('auth.login')
+```
+
+#### loggerHandle Prints
+
+```python
+logger.printLogSummary()
+logger.printLogsTable(count=15, showFields=['logID', 'timestamp', 'sourceMethodCall', 'message'])
+```
+
+#### loggerHandle Exporting
+
+```python
+logger.exportLogs('logs/export.json', format='json', sourceFilter='auth')
+logger.exportLogs('logs/export.csv', format='csv')
+```
+
+
+#### loggerHandle Advanced Usage
+
+```python
+logger.secureLog('payment.process', {'card': '****1234', 'amount': 99.99}, 'info')
+# Get surrounding context
+context = logger.getContextualLogs('auth.login', contextLimit=3)
+# Stack trace capture
+try: 1/0
+except: logger.logStackTrace('math.divide', 'Division by zero caught')
+```
+
+#### loggerHandle Customized Colors
+
+```python
+logger = loggerHandle('myApp')
+# coloredFormatter is automatically used for console output
+logger.debugLog('app.start', 'Debug message')  # Gray + Bold
+logger.infoLog('app.start', 'Info message')    # Blue + Bold
+logger.warningLog('app.start', 'Warning')      # Yellow + Bold
+logger.errorLog('app.start', 'Error')          # Red
+logger.criticalLog('app.start', 'Critical')    # Red + Bold
+from logger import coloredFormatter, extLogger
+import logging
+customFormatter = coloredFormatter(
+    fmt="(black){asctime}(reset) (levelcolor){levelname:<8}(reset) (green){name}(reset) {message}",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+# Apply to specific logger
+customLogger = extLogger(
+    loggerID='custom',
+    consoleLevel=logging.DEBUG,
+    consoleFormatter=customFormatter
+)
+# *--- Custom Color Schemes ---*
+class CustomColors(coloredFormatter):
+    black = "\x1b[30m"
+    red = "\x1b[31m"
+    green = "\x1b[32m"
+    yellow = "\x1b[33m"
+    blue = "\x1b[34m"
+    magenta = "\x1b[35m"
+    cyan = "\x1b[36m"
+    white = "\x1b[37m"
+    gray = "\x1b[38m"
+    reset = "\x1b[0m"
+    bold = "\x1b[1m"
+    dim = "\x1b[2m"
+    italic = "\x1b[3m"
+    underline = "\x1b[4m"
+    
+    COLORS = {
+        logging.DEBUG: cyan + bold,
+        logging.INFO: green,
+        logging.WARNING: yellow + bold,
+        logging.ERROR: red + bold,
+        logging.CRITICAL: red + bold + underline,
+    }
+# *--- Use Custom Colors (CustomColors())---*
+customColorFormatter = CustomColors()
+logger = loggerHandle('myApp', configOverrides={})
+logger.logger = extLogger(
+    loggerID='myApp',
+    consoleLevel=logging.DEBUG,
+    consoleFormatter=customColorFormatter
+)
+# *--- Minimal (Internal) ---*
+from ALNv2021 import simpleFormatter, coloredFormatter, extLogger
+import logging
+# *--- Simple ---*
+simpleFormatter = simpleFormatter(
+    fmt="[{asctime}] [{levelname:<8}] {name}: {message}",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+# *--- Detailed ---*
+detailedFormatter = coloredFormatter(
+    fmt="(black){asctime}(reset) (levelcolor){levelname:<8}(reset) (green){name}(reset) {message} [Line {funcName}]",
+    datefmt="%H:%M:%S"
+)
+# *--- Minimal ---*
+minimalFormatter = coloredFormatter(
+    fmt="(levelcolor){levelname}(reset) (green){name}(reset) {message}"
+)
+# *--- Apply Different Formatters To Different Loggers ---*
+logger_debug = extLogger(
+    loggerID='debugLogger',
+    consoleLevel=logging.DEBUG,
+    consoleFormatter=detailedFormatter
+)
+logger_prod = extLogger(
+    loggerID='prodLogger',
+    consoleLevel=logging.ERROR,
+    consoleFormatter=minimalFormatter
+)
+# *--- Color Code Reference ---*
+"""
+Text Colors:
+\x1b[30m - Black
+\x1b[31m - Red
+\x1b[32m - Green
+\x1b[33m - Yellow
+\x1b[34m - Blue
+\x1b[35m - Magenta
+\x1b[36m - Cyan
+\x1b[37m - White
+\x1b[38m - Gray
+
+Styles:
+\x1b[0m  - Reset
+\x1b[1m  - Bold
+\x1b[2m  - Dim
+\x1b[3m  - Italic
+\x1b[4m  - Underline
+
+Combined Example: "\x1b[31m\x1b[1m" - Red + Bold
+Reset After: "\x1b[0m"
+"""
+# Create secerity based color schemes
+class SeverityColors(coloredFormatter):
+    reset = "\x1b[0m"
+    bold = "\x1b[1m"
+    
+    # Severity levels with corresponding colors
+    COLORS = {
+        logging.DEBUG: "\x1b[36m" + bold,      # Cyan Bold
+        logging.INFO: "\x1b[32m",              # Green
+        logging.WARNING: "\x1b[33m" + bold,    # Yellow Bold
+        logging.ERROR: "\x1b[31m" + bold,      # Red Bold
+        logging.CRITICAL: "\x1b[31m\x1b[4m",   # Red + Underline
+    }
+# Apply a severity-based color scheme
+severityFormatter = SeverityColors()
+```
 
 
 ## Process Module
@@ -1645,9 +1949,86 @@ __Date:__ `11-8-2025`
 
 I am constantly working on alien so please be patient.
 
-1. Added better handling all around for handling.
-2. Virtual Environment establishment, required further on.
-3. ATLAS Emotional AI developemental features.
+- Added better handling all around for handling.
+- Virtual Environment establishment, required further on.
+- ATLAS Emotional AI developemental features.
+
+__Date:__ `11-12-2025`
+
+* **`utils/transmission.py`**
+    - Removed `mitm`, `nmap` pre-constructed functions (replaced with `nephila.py`)
+
+* **`utils/nephila.py`**
+    - Sourced from `https://github.com/J4ck3LSyN-Gen2/Malum/blob/main/nephila.py`
+    - Network scanning operations. 
+    
+* **`utils/PUS.py`**
+    - Sourced from `https://github.com/J4ck3LSyN-Gen2/pingSmugglerUpgraded/blob/main/PSU.py`
+    - ICMP Packet/Tunneling Operations.
+
+* **`ALNv2021.loggerHandle`**
+    - Extended `logging` functionality from previous versions, still in development.
+    
+    - **`ALNv2021.coloredFormatter`**
+        - Colored string formatter.
+
+    - **`ALNv2021.simpleFormatter`**
+        - Simple string formatter.
+
+    - **`ALNv2021.extLogger`**
+        - The wrapper for `extended logging.`
+
+    This `module` has been an issue for me to get properly working (when it comes to intensive opeations, IE:`interpreterHandle`,`atlasHandle`), to keep the centralized functionality of the logger, everythign still is expected to pass through `loggerHandle.logPipe`, however now you can also use:
+    ```markdown
+        - `minimalLog`
+        - `debugLog`
+        - `errorLog`
+        - `warningLog`
+        - `criticalLog`
+        - `infoLog`
+        - `secureLog`
+        - `asyncLog`
+        - `batchLog`
+    ```
+
+    I have implemented more extended `traceback` operations and log indexing which can be access via:
+    ```markdown 
+        - `getLogCount`
+        - `getSourceList`
+        - `getLogsBySource`
+        - `queryLogs`
+        - `searchLogs`
+        - `getStats`
+        - `getLastLogs`
+        - `getLogsByLevel`
+        - `rebuildLogIndex`
+        - `filterLogsByTime`
+        - `getLogDensity`
+        - `getSourceStats`
+        - `getExceptionLogs`
+        - `getErrorAndCriticalLogs`
+        - `getHighFrequencySources`
+        - `dumpRawLogs`
+        - `logStackTree`
+        - `getLogHeader`
+        - `compareLogRanges`
+    ```
+    
+    As far as configurables, there are several new additions as well:
+    ```markdown
+        - `setLevel`
+        - `disableConsoleLogging`
+        - `enableConsoleLogging`
+        - `setFlushInterval`
+    ```
+
+    Clearing & Flushing
+    ```markdown
+        - `cleanup`
+        - `flush`
+        - `clearBuffer`
+    ```
+    
 
 ### Whats To Come
 
@@ -1671,7 +2052,3 @@ I am constantly working on alien so please be patient.
 ### Go Home
 
 [Index](#index)
-
-
-
-

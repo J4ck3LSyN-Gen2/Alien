@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import time, threading, socket, logging, random, sys, datetime, asyncio
-import colorama, argparse, json, os, string, httpx, hashlib # type: ignore
+import colorama, argparse, json, os, string, httpx, hashlib, subprocess # type: ignore
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from xml.etree import ElementTree as ET
 from typing import Dict, Any, Union, Tuple, Optional, List
 __author__  = "J4ck3LSyN";__version__ = "0.1.0"
 class nephilaLoggingFormatter(logging.Formatter):
@@ -23,12 +24,13 @@ class nephila:
         if silent or not self.config['verbosity']: return 
         prefixMap = {1: "[*] ",3: "[!] ",'output': "[^] "};logMap = {0: self.customLogger.debug,'d': self.customLogger.debug,'debug': self.customLogger.debug,1: self.customLogger.info,'i': self.customLogger.info,'info': self.customLogger.info,2: self.customLogger.warning,'w': self.customLogger.warning,'warning': self.customLogger.warning,3: self.customLogger.error,'r': self.customLogger.error,'error': self.customLogger.error,4: self.customLogger.critical,'c': self.customLogger.critical,'critical': self.customLogger.critical};prefix = prefixMap.get(level, "");logFunc = logMap.get(level, self.customLogger.info)
         if not noLog: logFunc(f"{prefix}{message}", exc_info=exc_info)    
-    def __init__(self,app:bool=False):
+    def __init__(self,app:bool=False,logPipe:callable=None):
         self.config = {
             "noConfirmUser":False,
             "verbosity":True
         }
-        self.customLogger = customLogger; self.args = None
+        self.customLogger = customLogger 
+        self.args = None
         self.parsCentral = None
         self.subParsMode = None
         self.app = app
@@ -39,6 +41,154 @@ class nephila:
             else: self.customLogPipe("Running in --no-admin mode. Scapy-dependent features are disabled.",level=2)
             self.customLogPipe(f"Finished initializing nephila({str(__version__)}).")
 
+    class nmap:
+        def __init__(self, NSI: callable):
+            self.nS = NSI
+            self.customLogPipe = self.nS.customLogPipe
+            self.history = {}
+            self.config = {
+                "minPort": 1,
+                "maxPort": 1000,
+                "path": "nmapScanOutput",
+                "writeFile": False
+            }
+
+        def _spawnProcess(self,target: str,portStr: str = None,argStr: str = None,su: bool = False) -> str:
+            """Execute nmap and return XML output"""
+            base = "nmap ";end = "-oX -";cmd = base
+            if portStr: cmd += f"-p {portStr} "
+            if argStr: cmd += argStr + " "
+            cmd += target + " " + end
+            try:
+                if su: cmd = f"sudo {cmd}" if str(sys.platform).startswith('lin') else f"{cmd}"
+                result = subprocess.run(cmd,shell=True,capture_output=True,text=True,timeout=300)
+                if result.returncode != 0:
+                    self.customLogPipe(f"nmap error: {result.stderr}",level=2);return None
+                return result.stdout
+            except subprocess.TimeoutExpired:
+                self.customLogPipe("nmap scan timeout",level=2);return None
+            except Exception as e:
+                self.customLogPipe(f"Process spawn error: {str(e)}",level=2);return None
+
+        def _argParse(self, args: str) -> str:
+            """Parse args separated by ':' into nmap flag string"""
+            if not args: return ""
+            flags = args.split(':');parsed = []
+            for flag in flags:
+                if flag.strip():
+                    # Add '-' prefix if not present
+                    if not flag.startswith('-'): parsed.append(f"-{flag}")
+                    else: parsed.append(flag)
+            return " ".join(parsed)
+
+        def _parseXML(self, xmlString: str) -> Dict[str, Any]:
+            """Parse nmap XML output into dictionary"""
+            try:
+                root = ET.fromstring(xmlString)
+                scanData = {
+                    "hosts": [],
+                    "scan_info": {
+                        "start": root.get("startstr"),
+                        "end": root.get("endstr"),
+                        "summary": root.find("runstats/finished").get("summary") if root.find("runstats/finished") is not None else None
+                    }
+                }
+                # Parse hosts
+                for host in root.findall("host"):
+                    hostData = {"status": host.find("status").get("state"),"ports": [],"os": []}
+                    # Get IP address
+                    ipElement = host.find("address[@addrtype='ipv4']")
+                    if ipElement is None: ipElement = host.find("address[@addrtype='ipv6']")
+                    if ipElement is not None: hostData["ip"] = ipElement.get("addr")
+                    # Get hostname
+                    hostnames = host.find("hostnames")
+                    if hostnames is not None:
+                        hostname = hostnames.find("hostname")
+                        if hostname is not None: hostData["hostname"] = hostname.get("name")
+                    # Parse ports
+                    ports = host.find("ports")
+                    if ports is not None:
+                        for port in ports.findall("port"):
+                            portDict = {"protocol": port.get("protocol"),"port": int(port.get("portid")),"state": port.find("state").get("state"),"service": {}}
+                            service = port.find("service")
+                            if service is not None:
+                                portDict["service"] = {"name": service.get("name"),"product": service.get("product"),"version": service.get("version")}
+                            hostData["ports"].append(portDict)
+                    # Parse OS detection
+                    osmatch = host.find("os/osmatch")
+                    if osmatch is not None:
+                        hostData["os"] = {
+                            "name": osmatch.get("name"),
+                            "accuracy": osmatch.get("accuracy")
+                        }
+                    scanData["hosts"].append(hostData)
+                return scanData
+            except ET.ParseError as e:
+                self.customLogPipe(f"XML parse error: {str(e)}",level=2)
+                return None
+
+        def scan(self,
+                 targets: str | List[str],
+                 ports: str | int | List[str | int] = None,
+                 args: str = None,
+                 kwargs: Dict[str, Any] = None,
+                 verbose: bool = False,
+                 su: bool = False) -> Dict[str, Any]:
+            """Execute nmap scan and return parsed results"""
+            # Split targets
+            if not isinstance(targets, list): targets = targets.split(',') if "," in targets else [targets]
+            # Process ports
+            ports = ports if ports else [f"{self.config['minPort']}-{self.config['maxPort']}"]
+            if not isinstance(ports, list): ports = [str(ports)]
+            portString = ports[0] if len(ports) == 1 else ""
+            if not portString:
+                portInt = []
+                ranges = []
+                for p in ports:
+                    if '-' in str(p):
+                        ranges.append(p);continue
+                    try: portInt.append(int(p))
+                    except ValueError: pass
+                portInt = sorted(set(portInt))
+                portString = ",".join([str(p) for p in portInt])
+                if ranges: portString += "," + ",".join(ranges)
+            # Process args
+            argString = self._argParse(args) if args else ""
+            # Process kwargs
+            if kwargs:
+                for key, value in kwargs.items():
+                    argString += f" --{key} {value}"
+            results = {
+                "targets": targets,
+                "scans": []
+            }
+            # Run scan for each target
+            for target in targets:
+                if verbose: self.customLogPipe(f"Scanning {target}...")
+                xmlOutput = self._spawnProcess(
+                    target=target,
+                    portStr=portString,
+                    argStr=argString,
+                    su=su
+                )
+                if xmlOutput:
+                    parsed = self._parseXML(xmlOutput)
+                    results["scans"].append(parsed)
+                    # Store in history
+                    self.history[target] = parsed
+                    # Write to file if configured
+                    if self.config["writeFile"]: self._writeOutput(target, xmlOutput)
+            return results
+
+        def _writeOutput(self, target: str, xmlOutput: str):
+            """Write scan output to file"""
+            try:
+                filename = f"{self.config['path']}/{target}_scan.xml"
+                with open(filename, 'w') as f:
+                    f.write(xmlOutput)
+            except Exception as e:
+                self.customLogPipe(f"Write error: {str(e)}",level=2)
+    
     class proxify:
 
         def __init__(self,NSI:callable):
@@ -74,6 +224,7 @@ class nephila:
                 "proxychainsVerifyLimit":20
 
             }
+            self._proxyAddressIndex = {}
             self._proxyChainCache = {}
             self._proxychainRefreshInterval = datetime.timedelta(hours=1)
             self._roundRobinIndex = {}
@@ -100,7 +251,7 @@ class nephila:
                     try: self._appendProxy(pType, result['proxy'], result)
                     except: pass  
             # Update cache
-            self._proxyChainCache['lastRefreshed'] = datetime.now()
+            self._proxyChainCache['lastRefreshed'] = datetime.datetime.now()
             self._proxyChainCache['verifiedProxies'] = verified[:limit]
             self.customLogPipe(f"Fetched and verified {len(verified[:limit])}/{len(rawProxies)} proxies",level=0)
             return verified[:limit]
@@ -151,7 +302,7 @@ class nephila:
             for pType in proxyTypes:
                 for metadata in self.proxies[pType].values():
                     proxy = metadata.get('proxy')
-                    if proxy: proxyList.append(proxy)
+                    if proxy: proxyList.append(f"{pType}://{proxy}")
             return proxyList
         
         
@@ -207,7 +358,7 @@ class nephila:
                 if isinstance(result, dict) and result and result.get('verified', [False])[0]: healthy.append(result)
             # Update cache if requested
             if updateCache:
-                self._proxyChainCache['verifiedProxies'] = healthy;self._proxyChainCache['lastRefreshed'] = datetime.now()
+                self._proxyChainCache['verifiedProxies'] = healthy;self._proxyChainCache['lastRefreshed'] = datetime.datetime.now()
             self.customLogPipe(f"Health check: {len(healthy)}/{len(proxiesToCheck)} proxies healthy",level=0)
             return healthy
         
@@ -259,6 +410,7 @@ class nephila:
                 raise ValueError(eM)
             hashID = self._getHashID(str(proxy))
             self.proxies[proxyType][hashID[0]] = proxyMetaData
+            self._proxyAddressIndex[proxy] = (proxyType, hashID[0])
             self.customLogPipe(f"Added {proxyType} proxy: {proxy}", level=0)
 
         def _calculateProxyScore(self, metadata:Dict[str,Any]) -> float:
@@ -278,7 +430,7 @@ class nephila:
                 elif latency <= 10.0: score += 0.3 * (1 - (latency - 1) / 9)
             timestamp = metadata.get('timestamp')
             if timestamp:
-                ageSec = (datetime.now() - timestamp).total_seconds();ageHour = ageSec / 3600
+                ageSec = (datetime.datetime.now() - timestamp).total_seconds();ageHour = ageSec / 3600
                 if ageHour <= 1: score += 0.2
                 elif ageHour <= 24: score += 0.2 * (1 - (ageHour - 1) / 23)
             proxy = metadata.get('proxy')
@@ -295,10 +447,10 @@ class nephila:
                     'totalAttempts': 0,
                     'successfullAttempts': 0,
                     'last_used': None,
-                    'first_used': datetime.now()}
+                    'first_used': datetime.datetime.now()}
             self.history[proxy]['totalAttempts'] += 1
             if success: self.history[proxy]['successfullAttempts'] += 1
-            self.history[proxy]['last_used'] = datetime.now()
+            self.history[proxy]['last_used'] = datetime.datetime.now()
 
         def _removeProxyByAddress(self, proxy:str) -> None:
             """Remove a proxy from storage by its address"""
@@ -310,64 +462,150 @@ class nephila:
 
         async def verifyProxy(self, proxy:str, proxyType:str='http') -> Optional[dict]:
             """Verify if a proxy is working by testing against validation URLs"""
+
+            # Validate proxy format
+            if not proxy or ':' not in proxy:
+                self.customLogPipe(f"Invalid proxy format: {proxy}", level=2)
+                return None
+
             proxyURL = f"{proxyType}://{proxy}"
+            self.customLogPipe(f"Testing proxy: {proxyURL}", level=0)
+
             for url in self.config['validationURLS']:
                 try:
+                    # httpx uses 'mounts' parameter for proxies
                     async with httpx.AsyncClient(
-                        proxies=proxyURL,
+                        mounts={
+                            "http://": httpx.AsyncHTTPTransport(proxy=proxyURL),
+                            "https://": httpx.AsyncHTTPTransport(proxy=proxyURL),
+                        },
                         timeout=self.config['testTimeout'],
                         verify=False
                     ) as client:
-                        start_time = datetime.now()
+                        start_time = datetime.datetime.now()
                         resp = await client.get(url)
-                        latency = (datetime.now() - start_time).total_seconds()
-                        if resp.status_code == 200: return {
+                        latency = (datetime.datetime.now() - start_time).total_seconds()
+
+                        self.customLogPipe(f"Proxy {proxy} -> {url}: {resp.status_code} ({latency:.2f}s)", level=0)
+
+                        if resp.status_code == 200:
+                            return {
                                 "proxy": proxy,
                                 "verified": [True, url, resp.text.strip()],
                                 "latency": latency,
-                                "timestamp": datetime.now()}
-                        else: return {
-                                "proxy": proxy,
-                                "verified": [False, url],
-                                "latency": latency,
-                                "status": resp.status_code,
-                                "timestamp": datetime.now() }
-                except Exception as e: continue
+                                "timestamp": datetime.datetime.now()
+                            }
+                except Exception as e:
+                    self.customLogPipe(f"Proxy {proxy} failed on {url}: {type(e).__name__}: {str(e)[:100]}", level=1)
+                    continue
+                
+            self.customLogPipe(f"Proxy {proxy} failed all verification tests", level=1)
             return None
 
         async def _getPubProxies(self, proxyType:str=None, limit:int=50) -> List[str]:
             """Fetch public proxies from API"""
-            pType = proxyType if proxyType else self.config['pubProxyType'];uri = self.config['pubProxyAPI'] + pType;proxies = set()
+            pType = proxyType if proxyType else self.config['pubProxyType']
+            uri = self.config['pubProxyAPI'] + pType
+            proxies = set()
+            self.customLogPipe(f"Fetching proxies from: {uri}", level=0)
             try:
                 async with httpx.AsyncClient(timeout=10, verify=False) as client:
                     resp = await client.get(uri)
+                    self.customLogPipe(f"API Response Status: {resp.status_code}", level=0)
                     if resp.status_code == 200:
-                        data = resp.json()
-                        proxyList = data.get('data', [])[:limit]
-                        proxies.update([proxy.strip() for proxy in proxyList if proxy.strip()])
-            except Exception as e: self.customLogPipe(f"Error fetching public proxies: {e}", level=2)
+                        # Try JSON first, fall back to plaintext
+                        try:
+                            data = resp.json()
+                            proxyList = data.get('data', [])
+                            self.customLogPipe(f"Parsed as JSON, got {len(proxyList)} proxies", level=0)
+                        except Exception as e:
+                            # If JSON fails, parse as plaintext (one proxy per line)
+                            self.customLogPipe(f"JSON parsing failed ({type(e).__name__}), trying plaintext format", level=1)
+                            text_content = resp.text.strip()
+                            self.customLogPipe(f"Raw response preview: {text_content[:200]}", level=0)
+                            proxyList = [line.strip() for line in text_content.split('\n') if line.strip()]
+                            self.customLogPipe(f"Parsed as plaintext, got {len(proxyList)} proxies", level=0)
+                        for proxy in proxyList[:limit]:
+                            if isinstance(proxy, dict):
+                                # Handle dict format: {"ip": "x.x.x.x", "port": "xxxx"}
+                                proxy_str = f"{proxy.get('ip', '')}:{proxy.get('port', '')}"
+                            else:
+                                # Handle string format: "x.x.x.x:port"
+                                proxy_str = str(proxy).strip()
+                            # Validate format (must have IP:port)
+                            if proxy_str and ':' in proxy_str and proxy_str.count(':') == 1:
+                                ip, port = proxy_str.rsplit(':', 1)
+                                try:
+                                    int(port)  # Validate port is numeric
+                                    proxies.add(proxy_str)
+                                    self.customLogPipe(f"Added proxy: {proxy_str}", level=0)
+                                except ValueError:
+                                    self.customLogPipe(f"Invalid port in proxy: {proxy_str}", level=1)
+                                    continue
+                            else:
+                                self.customLogPipe(f"Invalid proxy format: {proxy_str}", level=1)
+
+                        self.customLogPipe(f"Validated {len(proxies)} proxies from API", level=0)
+                    else:
+                        self.customLogPipe(f"API returned status {resp.status_code}: {resp.text[:200]}", level=2)
+
+            except Exception as e:
+                self.customLogPipe(f"Error fetching public proxies: {str(e)}", level=2)
+                import traceback
+                self.customLogPipe(traceback.format_exc(), level=2)
+
+            self.customLogPipe(f"Returning {len(proxies)} proxies", level=0)
             return list(proxies)
 
         async def fetch(self, proxyType:str=None, limit:int=50, verify:bool=True) -> Dict[str, List]:
             """Fetch and optionally verify proxies from public sources"""
             proxies = {'raw':[],'verified':[],'failed':[]}
             try:
-                rawProxies = await self._getPubProxies(proxyType, limit);proxies['raw'] = rawProxies
-                self.customLogPipe(f"Fetched {len(rawProxies)} proxies", level=0)
+                rawProxies = await self._getPubProxies(proxyType, limit)
+                proxies['raw'] = rawProxies
+                self.customLogPipe(f"Fetched {len(rawProxies)} raw proxies", level=0)
+
+                if not rawProxies:
+                    self.customLogPipe("No proxies returned from API", level=2)
+                    return proxies
+
                 if verify and rawProxies:
+                    self.customLogPipe(f"Starting verification of {len(rawProxies)} proxies...", level=0)
+                    pType = proxyType or self.config['pubProxyType']
                     verificationTasks = [
-                        self.verifyProxy(proxy, proxyType or self.config['pubProxyType']) 
-                        for proxy in rawProxies]
+                        self.verifyProxy(proxy, pType) 
+                        for proxy in rawProxies
+                    ]
                     results = await asyncio.gather(*verificationTasks, return_exceptions=True)
-                    for result in results:
+                    verificationCount = 0
+                    failedCount = 0
+                    for idx, result in enumerate(results):
+                        self.customLogPipe(f"Verification [{idx+1}/{len(results)}]: {result}", level=0)  # Debug
+                        if isinstance(result, Exception):
+                            self.customLogPipe(f"Verification error: {result}", level=1)
+                            failedCount += 1
+                            continue
                         if isinstance(result, dict) and result:
                             if result.get('verified', [False])[0]:
                                 proxies['verified'].append(result)
                                 pType = proxyType or self.config['pubProxyType']
-                                self._appendProxy(pType, result['proxy'], result)
-                            else: proxies['failed'].append(result)
-                    self.customLogPipe(f"Verified {len(proxies['verified'])}/{len(rawProxies)} proxies",level=0)
-            except Exception as e: self.customLogPipe(f"Error in fetch: {e}", level=2)
+                                try:
+                                    self._appendProxy(pType, result['proxy'], result)
+                                    verificationCount += 1
+                                except Exception as e:
+                                    self.customLogPipe(f"Failed to append proxy {result['proxy']}: {e}", level=1)
+                            else:
+                                proxies['failed'].append(result)
+                                failedCount += 1
+                        else: failedCount += 1
+
+                    self.customLogPipe(f"Verification complete: {verificationCount} verified, {failedCount} failed", level=0)
+                else: self.customLogPipe("Skipping verification", level=0)
+            except Exception as e:
+                self.customLogPipe(f"Error in fetch: {str(e)}", level=2)
+                import traceback
+                self.customLogPipe(traceback.format_exc(), level=2)
+
             return proxies
 
         def getProxy(self, proxyType:str='http', minScore:float=None, strategy:str='best') -> Optional[Dict[str, Any]]:
@@ -496,7 +734,7 @@ class nephila:
                             exported.append(f"{pType}://{proxy}")
             return exported
 
-        def importProxies(self, proxyList:List[str], verify:bool=False) -> Dict[str, int]:
+        async def importProxies(self, proxyList:List[str], verify:bool=False) -> Dict[str, int]:
             """
             Import proxies from a list
 
@@ -508,28 +746,35 @@ class nephila:
                 Dictionary with import statistics
             """
             stats = {'imported': 0, 'verified': 0, 'failed': 0}
-            for proxyStr in proxyList:
+            async def process_proxy(proxyStr):
                 try:
                     # Parse proxy string
                     if '://' in proxyStr: pType, address = proxyStr.split('://', 1)
                     else:
                         pType = 'http' ;address = proxyStr
                     if pType not in self.proxies:
-                        stats['failed'] += 1;continue
+                        return 'failed'
                     if verify:
-                        result = asyncio.run(self.verifyProxy(address, pType))
+                        result = await self.verifyProxy(address, pType)
                         if result and result.get('verified', [False])[0]:
-                            self._appendProxy(pType, address, result);stats['verified'] += 1
-                        else: stats['failed'] += 1
+                            self._appendProxy(pType, address, result); return 'verified'
+                        else: return 'failed'
                     else:
                         metadata = {
                             'proxy': address,
                             'verified': [False, None],
-                            'timestamp': datetime.now()}
+                            'timestamp': datetime.datetime.now()}
                         self._appendProxy(pType, address, metadata)
-                        stats['imported'] += 1
+                        return 'imported'
                 except Exception as e:
-                    self.customLogPipe(f"Error importing proxy {proxyStr}: {e}", level=2);stats['failed'] += 1
+                    self.customLogPipe(f"Error importing proxy {proxyStr}: {e}", level=2); return 'failed'
+
+            tasks = [process_proxy(proxyStr) for proxyStr in proxyList]
+            results = await asyncio.gather(*tasks)
+
+            for result in results:
+                if result:
+                    stats[result] += 1
             return stats
     
     class firewallFrag:
@@ -1023,6 +1268,15 @@ class nephila:
         proxySubParser.add_argument("--refresh-interval", type=int, help="Cache refresh interval in seconds (default: 3600).")
         proxySubParser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output.")
 
+        # Nmap Parser
+        nmapScanSubParser = self.subParsMode.add_parser("nmap", help="Run nmap scans and parse the output.")
+        nmapScanSubParser.add_argument("targets", help="Target hosts to scan, comma-separated.")
+        nmapScanSubParser.add_argument("-p", "--ports", help="Ports to scan (e.g., '80,443', '1-1000').")
+        nmapScanSubParser.add_argument("-a", "--args", help="Nmap arguments, colon-separated (e.g., 'sV:O:T4').")
+        nmapScanSubParser.add_argument("--su", action="store_true", help="Run nmap with sudo (for OS detection, etc.).")
+        nmapScanSubParser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output during scan.")
+        nmapScanSubParser.add_argument("-o", "--output", action="store_true", help="Write XML output to a file in the 'nmapScanOutput' directory.")
+
         self.args = self.parsCentral.parse_args()
         self.config['verbosity'] = self.args.verbose if hasattr(self.args, 'verbose') else True
 
@@ -1136,6 +1390,20 @@ class nephila:
                 stats = mitmCap.getCaptureStats()
                 self.customLogPipe(f"Capture stats: {json.dumps(stats, indent=2)}", level='output')
 
+        elif args.mode == 'nmap':
+            if not hasattr(self, 'nmapScanner'): self.nmapScanner = self.nmap(self)
+            if args.output:
+                self.nmapScanner.config['writeFile'] = True
+                if not os.path.exists(self.nmapScanner.config['path']):
+                    os.makedirs(self.nmapScanner.config['path'])
+            results = self.nmapScanner.scan(
+                targets=args.targets,
+                ports=args.ports,
+                args=args.args,
+                su=args.su,
+                verbose=args.verbose
+            )
+            self.customLogPipe(f"Nmap scan results:\n{json.dumps(results, indent=2)}", level='output')
         elif args.mode == 'enum':
             enum = self.enumeration(self)
             try:
@@ -1169,12 +1437,14 @@ class nephila:
             try:
                 if args.action == 'fetch':
                     self.customLogPipe(f"Fetching and verifying {args.limit} {args.proxy_type} proxies...", level=0)
-                    results = asyncio.run(self.proxyManager.fetchAndVerify(limit=args.limit, proxyType=args.proxy_type))
-                    self.customLogPipe(f"Successfully fetched {len(results)} verified proxies",level='output')
+                    resDict = asyncio.run(self.proxyManager.fetch(proxyType=args.proxy_type,limit=args.limit))
+                    verifiedProxies = resDict.get('verified',[])
+                    self.customLogPipe(f"Successfully fetched {len(verifiedProxies)} verified proxies", level='output')
                     if args.verbose:
-                        for proxy_data in results[:10]:  # Show first 10
-                            self.customLogPipe(f"  {proxy_data['proxy']} - Latency: {proxy_data['latency']:.2f}s",level='output')
-
+                        pC = 0
+                        for proxy in verifiedProxies:
+                            self.customLogPipe(f"({pC+1}/{len(verifiedProxies)})\t{proxy}", level='output')
+                            pC += 1
                 elif args.action == 'list':
                     proxies = self.proxyManager.getProxies(proxyType=args.proxy_type)
                     self.customLogPipe(f"Available {args.proxy_type} proxies: {len(proxies)}", level='output')
@@ -1206,7 +1476,7 @@ class nephila:
                     try:
                         with open(args.file, 'r') as f:
                             proxy_list = [line.strip() for line in f if line.strip()]
-                        stats = self.proxyManager.importProxies(proxy_list,verify=args.verify)
+                        stats = asyncio.run(self.proxyManager.importProxies(proxy_list,verify=args.verify))
                         self.customLogPipe(f"Import complete: {json.dumps(stats)}",level='output')
                     except Exception as E: self.customLogPipe(f"Import failed: {str(E)}", level=3)
                 elif args.action == 'clear':

@@ -3,7 +3,7 @@ from . import utils
 from . import errors
 from .core import ( # Central functionality
     processHandle, interpreterHandle, configHandle, loggerHandle, atlasHandle,
-    memoryHandle, installHandle
+    memoryHandle, installHandle, coloredFormatter, simpleFormatter, extLogger
 )
 __version__ = "2.0.2.1"
 __description__ = "Alien"
