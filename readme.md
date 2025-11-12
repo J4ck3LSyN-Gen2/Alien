@@ -37,7 +37,10 @@ The _Alien Framework_ is a project designed over years of my personal growth and
   - Encoding operations.
   - Further obfuscation techniques.
 
-Etc....
+so on and so forth....
+
+---
+
 
 ## Index
 
@@ -100,6 +103,11 @@ Etc....
             - [Hosting Configuration](#utils-web-hosting-configuration)
         - [API Hosting](#utils-web-hosting-api)
         - [HTTP Hosting](#utils-web-hosting-html)
+    - [utils.compress](#utils-compression)
+        - [Zip Compression](#utils-compress-zip)
+        - [Zip Examples](#utils-zip-examples)
+        - [Huffman Compression](#utils-compress-huffman)
+        - [Huffman Examples](#utils-huffman-examples)
 - [Notes](#notes)
 - [Change Log](#change-log)
 - [Whats To Come](#whats-to-come)
@@ -719,12 +727,12 @@ __Calling Modules Methods__
 Pythonic libraries can be used to have python flexibility inside of your alien programs
 without the possible slowness (and for now limited) functionality of alien. 
 
-You can create `new` libraries with raw data via: `py -m ALNv2020 intr -nPL 'myLibrary.py'`
+You can create `new` libraries with raw data via: `py -m ALNv2021 intr -nPL 'myLibrary.py'`
 
 __Example__
 
 ```python
-# Written for alien(G2V020)
+# Written for alien(G2V021)
 # OG Author(Alien): J4ck3LSyN
 # https://github.com/J4ck3LSyN-Gen2/Alien/
 __author__ = '<anonymous>'
@@ -1940,6 +1948,86 @@ httpHost = web.httpServe(web)
 httpHost.serve() 
 ```
 
+### Utils Compression
+
+I plan on adding more compression algorithms as time goes on, such as `tarball` & `rar`, for now we do have the functionality for `zip` & `huffman` compression.
+
+#### Utils Compress Zip
+
+Initialization:
+
+```python
+import ALNv2021 as alien
+zipCompress = alien.utils.compress.zipCompress(
+    logger=None, # loggerHandle()
+    confHandle=None # configHandle()
+)
+```
+
+#### Utils Zip Examples 
+
+```python
+# *--- Compress Specified Files ---*
+zipCompress._compressSpecifiedFiles(
+    outputZipName='exampleArchive.zip',
+    fileList=['file1','dir2'],
+    zipPath=None # Output path (os.getcwd())
+)
+# *--- Compress Directory ---*
+zipCompress._compressDirectory(
+    directoryPath='path/to/dir',
+    zipPath=None # Output Path (os.getcwd())
+)
+# *--- Get Archive Contents ---*
+zipCompress._getContents('exampleArchive.zip')
+# *--- Decompress Directory ---*
+zipCompress._decompressDirectory('exampleArchive.zip')
+# NOTE: I plan on adding further functionality as time goes on and it is needed like encryption 
+#       and other small things. 
+```
+
+#### Utils Compress Huffman
+
+Initialization:
+
+```python
+import ALNv2021 as alien
+huffmanCompress = alien.utils.compress.huffman(
+    logger=None # loggerHandle()
+)
+```
+
+#### Utils Huffman Examples
+
+```python
+# *--- Run Compression Automatically (`run`) ---*
+outData = huffmanCompress.run(
+    data="This Data To Compress",
+    setCodeBook=True, # If True than it will set `huffman.codeBook`
+    encodePost=True # If True, exec setup prior than encode.
+)
+# outData = {
+#   'data': str,
+#   'codeBook': codeBook,
+#   'encoded': encoded_data (if encodePost=True)
+# }
+#
+# *--- Encode Data ---*
+encoded = huffmanCompress.encode(
+    data="Data to encode",
+    codeBook=None # Optional: use provided codeBook or self.codeBook
+)
+#
+# *--- Decode Data ---*
+decoded = huffmanCompress.decode(
+    data=encoded,
+    codeBook=None # Optional: use provided codeBook or self.codeBook
+)
+#
+# *--- Reset CodeBook ---*
+huffmanCompress.reset()
+```
+
 ### Notes
 
 * **Modules Under Construction**
@@ -2033,6 +2121,7 @@ __Date:__ `11-12-2025`
         - `clearBuffer`
     ```
     
+More documentation (the index is growing)...
 
 ### Whats To Come
 
