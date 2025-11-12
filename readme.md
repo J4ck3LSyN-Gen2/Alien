@@ -1319,23 +1319,23 @@ logger.setFlushInterval(5)  # Flush every 5 seconds
 # Verbose vs Non-Verbose Profiles
 class LogProfiles:
     @staticmethod
-    def verbose(logger_instance):
-        logger_instance.setConsoleLevel('debug')
-        logger_instance.enableConsoleLogging()
-        logger_instance.config['level'] = 1
-        logger_instance.printLogSummary()
+    def verbose(loggerInstance):
+        loggerInstance.setConsoleLevel('debug')
+        loggerInstance.enableConsoleLogging()
+        loggerInstance.config['level'] = 1
+        loggerInstance.printLogSummary()
     
     @staticmethod
-    def production(logger_instance):
-        logger_instance.setConsoleLevel('error')
-        logger_instance.disableConsoleLogging()
-        logger_instance.config['level'] = 3
+    def production(loggerInstance):
+        loggerInstance.setConsoleLevel('error')
+        loggerInstance.disableConsoleLogging()
+        loggerInstance.config['level'] = 3
     
     @staticmethod
-    def minimal(logger_instance):
-        logger_instance.setConsoleLevel('critical')
-        logger_instance.disableConsoleLogging()
-        logger_instance.config['level'] = 4
+    def minimal(loggerInstance):
+        loggerInstance.setConsoleLevel('critical')
+        loggerInstance.disableConsoleLogging()
+        loggerInstance.config['level'] = 4
 # *--- Usage ---*
 LogProfiles.verbose(logger)  # Full debug output
 LogProfiles.production(logger)  # Only errors to console
