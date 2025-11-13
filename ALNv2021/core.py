@@ -17,7 +17,6 @@ from .utils import transmission
 from .utils import compress
 from .utils import cypher
 from .utils import misc
-from .utils import logExt
 
 # Exceptions
 # interpreter
@@ -6769,4 +6768,5 @@ class loggerHandle:
             elif levelInt==logging.CRITICAL:self.logger.critical(consoleMsg)
             if levelInt==logging.WARNING or levelInt==logging.CRITICAL:self.minimalLogger.warning(consoleMsg)
         if forcePrintToScreen:print(json.dumps(logEntry,indent=self.config.get('consoleIndentLevel')),'\n')
+
         self._flushBuffer()
