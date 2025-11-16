@@ -224,7 +224,7 @@ atlas = alien.atlasHandle(
 self.config = { # atlasHandle.config
             # Models & Levels
             "modelModes":{ # Model modes
-                # Heavy models (best for decet GPUs)
+                # Heavy models (best for decet GPSU)
                 "heavy":{
                     "single":"",
                     "chat":"",
@@ -632,7 +632,7 @@ graph TD;
     end
 
     subgraph SH [Statement Handling]
-        G[_handleStatements statements scope] --> H{Push Scope};
+        G[_handleStatements statements scope] --> H{PSUh Scope};
         H --> I{Loop through statements};
         I -- Next Statement --> J{Switch on statement type};
         I -- No More Statements --> K{Pop Scope};
@@ -2356,7 +2356,7 @@ __Date:__ `11-12-2025`
     - Sourced from `https://github.com/J4ck3LSyN-Gen2/Malum/blob/main/nephila.py`
     - Network scanning operations. 
     
-* **`utils/PUS.py`**
+* **`utils/PSU.py`**
     - Sourced from `https://github.com/J4ck3LSyN-Gen2/pingSmugglerUpgraded/blob/main/PSU.py`
     - ICMP Packet/Tunneling Operations.
 
@@ -2449,5 +2449,6 @@ __Date:__ `11-16-2025`
 * [Discord](https://discord.com/users/1355977316450439391)
 
 ### Go Home
+
 
 [Index](#index)
