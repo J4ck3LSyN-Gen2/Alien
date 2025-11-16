@@ -622,37 +622,37 @@ The following diagram illustrates the flow of execution within the interpreter, 
 ```mermaid
 graph TD;
     subgraph ME [Main Execution]
-        A[run()] --> B{Has Inline?};
+        A[run] --> B{Has Inline};
         B -- Yes --> C[Execute Inline Statements];
-        B -- No --> D{Find Entry Point (e.g., 'main')};
+        B -- No --> D{Find Entry Point};
         C --> D;
-        D -- Found --> E[Call _handleStatements(main body)];
+        D -- Found --> E[Call _handleStatements main body];
         D -- Not Found --> F[End];
         E --> F;
     end
 
     subgraph SH [Statement Handling]
-        G[_handleStatements(statements, scope)] --> H{Push Scope};
+        G[_handleStatements statements scope] --> H{Push Scope};
         H --> I{Loop through statements};
-        I -- Next Statement --> J{Switch on statement 'type'};
+        I -- Next Statement --> J{Switch on statement type};
         I -- No More Statements --> K{Pop Scope};
         K --> L[Return Value or None];
 
-        J -- assign --> JA[_handleExpression(value)] --> JB[_varAssign(name, value)];
-        J -- if --> JC{_handleExpression(condition)};
-        JC -- True --> JD[_handleStatements(then_block)];
-        JC -- False --> JE{Check 'elseif'};
-        JE -- True --> JF[_handleStatements(elseif_then)];
-        JE -- False --> JG{Check 'else'};
-        JG -- True --> JH[_handleStatements(else_block)];
-        J -- for --> JI[_handleExpression(iterable)] --> JJ{Loop};
-        JJ -- Each item --> JK[Create loop scope & _handleStatements(body)];
-        J -- while --> JL{_handleExpression(condition)};
-        JL -- True --> JM[_handleStatements(body)] --> JL;
-        J -- return --> JN[_handleExpression(value)] --> K;
-        J -- call/methodCall --> JO[_handleExpression(statement)];
-        J -- import --> JP[_handleImport(statement)];
-        J -- try --> JQ[_handleTryCatch(statement)];
+        J -- assign --> JA[_handleExpression value] --> JB[_varAssign name value];
+        J -- if --> JC{_handleExpression condition};
+        JC -- True --> JD[_handleStatements then_block];
+        JC -- False --> JE{Check elseif};
+        JE -- True --> JF[_handleStatements elseif_then];
+        JE -- False --> JG{Check else};
+        JG -- True --> JH[_handleStatements else_block];
+        J -- for --> JI[_handleExpression iterable] --> JJ{Loop};
+        JJ -- Each item --> JK[Create loop scope & _handleStatements body];
+        J -- while --> JL{_handleExpression condition};
+        JL -- True --> JM[_handleStatements body] --> JL;
+        J -- return --> JN[_handleExpression value] --> K;
+        J -- call/methodCall --> JO[_handleExpression statement];
+        J -- import --> JP[_handleImport statement];
+        J -- try --> JQ[_handleTryCatch statement];
         
         JB --> I;
         JD --> I;
@@ -666,20 +666,20 @@ graph TD;
     end
 
     subgraph EE [Expression Evaluation]
-        S[_handleExpression(expression)] --> T{Switch on expression 'type'};
+        S[_handleExpression expression] --> T{Switch on expression type};
         T -- literal --> U[Return value];
-        T -- varRef --> V[_varResolve(name)];
-        T -- binaryOp --> W[_handleExpression(left)] & X[_handleExpression(right)] --> Y[_handleBinaryOp(op, left, right)];
-        T -- call --> Z[_handleFunctionCall(name, args, kwargs)];
-        T -- methodCall --> AA[_handleFunctionCall(method, args, kwargs)];
-        T -- new --> AB[Create instance & _handleFunctionCall(constructor)];
+        T -- varRef --> V[_varResolve name];
+        T -- binaryOp --> W[_handleExpression left] & X[_handleExpression right] --> Y[_handleBinaryOp op left right];
+        T -- call --> Z[_handleFunctionCall name args kwargs];
+        T -- methodCall --> AA[_handleFunctionCall method args kwargs];
+        T -- new --> AB[Create instance & _handleFunctionCall constructor];
     end
 
     subgraph FLC [Function/Library Calls]
-        FC[_handleFunctionCall()] --> FD{Is Python Callable?};
+        FC[_handleFunctionCall] --> FD{Is Python Callable};
         FD -- Yes --> FE[Execute Python function];
-        FD -- No --> FF{Is Alien Function?};
-        FF -- Yes --> FG[Bind args, create new scope] --> G;
+        FD -- No --> FF{Is Alien Function};
+        FF -- Yes --> FG[Bind args create new scope] --> G;
         FE --> R[Return Value];
         L --> R;
     end
