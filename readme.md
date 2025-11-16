@@ -620,8 +620,8 @@ If given as a `File Name` it will attempt to file the file inside of the `curren
 The following diagram illustrates the flow of execution within the interpreter, from the main `run` command down to individual statement and expression handling.
 
 ```mermaid
-graph TD
-    subgraph Main Execution
+graph TD;
+    subgraph ME [Main Execution]
         A[run()] --> B{Has Inline?};
         B -- Yes --> C[Execute Inline Statements];
         B -- No --> D{Find Entry Point (e.g., 'main')};
@@ -631,7 +631,7 @@ graph TD
         E --> F;
     end
 
-    subgraph Statement Handling
+    subgraph SH [Statement Handling]
         G[_handleStatements(statements, scope)] --> H{Push Scope};
         H --> I{Loop through statements};
         I -- Next Statement --> J{Switch on statement 'type'};
@@ -665,7 +665,7 @@ graph TD
         JQ --> I;
     end
 
-    subgraph Expression Evaluation
+    subgraph EE [Expression Evaluation]
         S[_handleExpression(expression)] --> T{Switch on expression 'type'};
         T -- literal --> U[Return value];
         T -- varRef --> V[_varResolve(name)];
@@ -675,7 +675,7 @@ graph TD
         T -- new --> AB[Create instance & _handleFunctionCall(constructor)];
     end
 
-    subgraph Function/Library Calls
+    subgraph FLC [Function/Library Calls]
         FC[_handleFunctionCall()] --> FD{Is Python Callable?};
         FD -- Yes --> FE[Execute Python function];
         FD -- No --> FF{Is Alien Function?};
