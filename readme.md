@@ -15,8 +15,37 @@
 
 The _Alien Framework_ is a project designed over years of my personal growth and developmental expierence, I have designed it to be a centralized toolkit for Cybersecurity/OffensiveSecurity/OperationSecurity operations, software development and general purpose. _Alien_ offers tools such as:
 
+* **Alien Interpreter**
+    - An advanced JSON-based programmable interpreter for Python.
+    - Allows for easy creation/importation of libraries and classes.
+    - Nested expression/statement operations.
+    - Threaded/asynchronous execution.
+    - Several internal libraries from `sockets` to `obfuscation`.
 
+* **`A.T.L.A.S`**
+    - `Advanced.Transmit.Logic.Analysis.System`
+    - `LLM` connectivity with MCP, Roles, Options and agentic operations through `Ollama`.
 
+* **Network Security**
+    - `utils.nephila` For `nmap` integration, `proxify`, `stealth` scanning, `MITM` captures and `firewall` packet fragmentation.
+    - `utils.transmission` For `sockets` and `web` requests.
+    - `utils.PSU` For ICMP packet smuggling (under construction).
+
+* **Compression**
+    - `ZIP` & `HuffMan` Compression
+
+* **Advanced & Customizable Logging**
+    - Centralized logging through `loggerHandle`.
+    - Modular customization through `Formatting` (See index for more information).
+
+* **Dynamic WebHosting**
+    - Ability to spawn `fileless` API/HTTP Services.
+    - Both with `host` validation, `API` keys and `Token` verification (if any).
+    - Pythonic usage based of string injection.
+
+* **Centralized Process Management**
+    - Both `subproces` & `threaded` based operations are centralized to `processHandle`.
+    - Offers dynamic execution for shell activity based off platform (Windows,Linux,Termux,Mac).
 ---
 
 
