@@ -696,7 +696,7 @@ graph TD;
     AA --> FC;
     AB --> FC;
 
-    classDef internal fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef internal fill:#3e2a47,stroke:#333,stroke-width:2px;
     class A,B,C,D,E,F,G,H,I,J,K,L,S,FC,R internal;
 ```
 
