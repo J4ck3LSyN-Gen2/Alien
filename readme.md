@@ -2427,6 +2427,11 @@ More documentation (the index is growing)...
 
 __Date:__ `11-16-2025`
 
+- Added `nephila` & `PSU` into `ALNv2021.utils` [nephila](#utils-nephila-network-scanning), PSU documentation coming soon.
+> (__NOTE :__) DNS Enumeration has not been documented and planned to be implemented via another tool.  
+- Better grpahical understand of Alien Interpreter Execution [here](#interpreter-execution-structure)
+- Better information/listing of the [Standard Libraries](#interpreter-standard-libaries)
+
 
 
 ### Whats To Come
@@ -2449,6 +2454,5 @@ __Date:__ `11-16-2025`
 * [Discord](https://discord.com/users/1355977316450439391)
 
 ### Go Home
-
 
 [Index](#index)
