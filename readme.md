@@ -27,7 +27,7 @@ The _Alien Framework_ is a project designed over years of my personal growth and
     - `LLM` connectivity with MCP, Roles, Options and agentic operations through `Ollama`.
 
 * **Network Security**
-    - `utils.nephila` For `nmap` integration, `proxify`, `stealth` scanning, `MITM` captures and `firewall` packet fragmentation.
+    - `utils.nephila` For `nmap` integration, `proxify` for fetching/tunneling proxies, `stealth` scanning, `MITM` captures and `firewall` packet fragmentation.
     - `utils.transmission` For `sockets` and `web` requests.
     - `utils.PSU` For ICMP packet smuggling (under construction).
 
@@ -2485,3 +2485,4 @@ __Date:__ `11-16-2025`
 ### Go Home
 
 [Index](#index)
+
