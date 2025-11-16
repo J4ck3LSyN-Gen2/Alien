@@ -24,8 +24,14 @@ class pingSmugglerUpgraded:
     def customLogPipe(self,message:str,level:int=1,exc_info:bool=False,noLog:bool=False):
         prefix_map = {1: "[*] ",3: "[!] ",'output': "[^] "};logMap = {0: self.customLogger.debug,'d': self.customLogger.debug,'debug': self.customLogger.debug,1: self.customLogger.info,'i': self.customLogger.info,'info': self.customLogger.info,2: self.customLogger.warning,'w': self.customLogger.warning,'warning': self.customLogger.warning,3: self.customLogger.error,'r': self.customLogger.error,'error': self.customLogger.error,4: self.customLogger.critical,'c': self.customLogger.critical,'critical': self.customLogger.critical};prefix = prefix_map.get(level, "");logFunc = logMap.get(level, self.customLogger.info)
         if not noLog: logFunc(f"{prefix}{message}", exc_info=exc_info)
-    def __init__(self,noConfirmUser:bool=False,app:bool=False):
-        self.config = {"noConfirmUser":noConfirmUser};self.history = {};self.customLogger = customLogger;self.customLogPipe("Initializing PSU...");self.customLogPipe("Attempting `scapy` & `cryptography` import...");self._initImports();self.app = app; self.centralParser = None;self.subParCenteral = None;self.subParSend = None;self.subParRecv = None;self.subParConnect = None;self.subParListen = None;self.subParGenKey = None; self.args = None;self.FLAG_SYN = 0x01;self.FLAG_FIN = 0x02;self.FLAG_DATA = 0x04;self.CONN_ID_MAX = 65535;self.HEADER_FORMAT = "!HB";self.HEADER_SIZE = struct.calcsize(self.HEADER_FORMAT)
+    def __init__(self,noConfirmUser:bool=False,app:bool=False,logPipe:callable=None):
+        self.config = {"noConfirmUser":noConfirmUser}
+        self.history = {}
+        if logPipe:
+            self.alienLogPipe = logPipe
+            self.customLogger = self._logPipeBridge
+        self.customLogger = customLogger
+        self.customLogPipe("Initializing PSU...");self.customLogPipe("Attempting `scapy` & `cryptography` import...");self._initImports();self.app = app; self.centralParser = None;self.subParCenteral = None;self.subParSend = None;self.subParRecv = None;self.subParConnect = None;self.subParListen = None;self.subParGenKey = None; self.args = None;self.FLAG_SYN = 0x01;self.FLAG_FIN = 0x02;self.FLAG_DATA = 0x04;self.CONN_ID_MAX = 65535;self.HEADER_FORMAT = "!HB";self.HEADER_SIZE = struct.calcsize(self.HEADER_FORMAT)
         if self.app: self.parsersInitialized = self._initParsers()
         else: self.parsersInitialized = False
     class tunnelClient:
@@ -415,6 +421,17 @@ class pingSmugglerUpgraded:
             self.customLogPipe(f"Generated {args.size}-byte AES key: {key.hex()}", level='output')
             print(f"- AES-KEY({str(args.size)}): `{str(key.hex())}`")
             sys.exit(0)
+
+    def _logPipeBridge(self,message:str,level:int=1,**kwargs):
+        """
+        A middle-man function to bridge nephila's internal logging calls
+        to the alien.loggerHandle.logPipe when provided.
+        """
+        # Map nephila's level to alien's loggingLevel
+        levelMap = {0: 'debug', 1: 'info', 2: 'warning', 3: 'error', 4: 'critical'}
+        alienLvl = levelMap.get(level, 'info')
+        # Call the provided alien logger
+        self.alienLogPipe('nephila', message, loggingLevel=alienLvl)
 def raiseBanner():
     banner = [
         '*-- PSU (Ping Smuggler Upgraded ) --*',

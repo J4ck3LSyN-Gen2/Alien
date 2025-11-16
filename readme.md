@@ -108,6 +108,12 @@ so on and so forth....
         - [Zip Examples](#utils-zip-examples)
         - [Huffman Compression](#utils-compress-huffman)
         - [Huffman Examples](#utils-huffman-examples)
+    - [utils.nephila](#utils-nephila-network-scanning)
+        - [NMAP Scanner](#utils-nephila-nmap)
+        - [Proxify](#utils-nephila-proxify)
+        - [Stealth Scanner](#utils-nephila-base-scanner)
+        - [MITM](#utils-nephila-mitm)
+        - [Firewall Packet Fragmentation](#utils-nephila-firewall-packet-fragmentation)
 - [Notes](#notes)
 - [Change Log](#change-log)
 - [Whats To Come](#whats-to-come)
@@ -149,28 +155,36 @@ python3 -m pip install -r requirements.txt
 
 #### List Of Modules
 
-* `requests`
-* `h11==0.16.0`
-* `beautifulsoup`
-* `paramiko`
-* `huffman`
-* `wikipedia`
-* `psutil`
-* `pycurl`
-* `donut`
-* `shodan`
-* `dotenv`
-* `pillow`
-* `pydantic`
-* `transformers`
-* `pydantic`
-* `torch`
-* `cryptography`
-* `scapy`
-* `colorama`
-* `pyfiglet`
-* `textwrap`
-* `alive-progress`
+```markdown
+* requests
+* h11==0.16.0
+* huffman
+* shodan
+* wikipedia
+* psutil
+* cryptography
+* beautifulsoup4
+* pycurl
+* paramiko
+* python-dotenv
+* ollama
+* pillow
+* nltk
+* pydantic
+* transformers
+* torch
+* aiohttp
+* colorama
+* pyfiglet
+* alive-progress
+* scapy
+* fake-useragent
+* dnspython
+* selenium
+* PyYAML
+* pycryptodome
+* pywin32
+```
 
 # Usage
 
@@ -2028,12 +2042,140 @@ decoded = huffmanCompress.decode(
 huffmanCompress.reset()
 ```
 
+
+#### Utils Nephila Network Scanning
+
+Initialization:
+
+```python
+import ALNv2021 as alien
+logger  = alien.loggerHandle('example')
+# Alternative Informational Logging (console)
+logger  = alien.loggerHandle('example',configOverride={'enableConsoleLogging':True})
+logger.setConsoleLevel('info')
+# Intialize
+nephInst = alien.utils.nephila(logPipe=logger.logPipe)
+```
+
+#### Utils Nephila Nmap
+
+```python
+nmapScanner = nephInst.nmap(nephInst)
+results = nmapScanner.scan(
+    target='scanme.nmap.org',
+    ports="", # Pots to scan, seperated via '80,8080' or ranged '1-1024'
+    args="-sV", # Arguments, seperated via 'sV:sC:T5'
+    verbose=True # Verbosity
+)
+```
+
+#### Utils Nephila Base Scanner
+
+```python
+# Requires Root (stealthy scans)
+import os
+if os.geteuid != 0: return # Validate root/admin
+scanner = nephInst.baseScanner(
+    nephInst,
+    host="192.168.0.1",
+    timeout=1.5
+)
+targetPorts = [80,22,442,8080]
+# SYN Scan
+results = scanner._scanPorts(targetPorts,maxThreads=10)
+# XMAS Stealth Scan
+scanner._setStealthScanXMASFlag()
+results = scanner._scanPorts(targetPorts,maxThreads=10)
+# FIN Stealth Scan
+scanner._setStealthFINFlag()
+results = scanner._scanPorts(targetPorts,maxThreads=10)
+# NULL Stealth Scan
+scanner._setStealthNullScanFlag()
+results = scanner._scanPorts(targetPorts,maxThreads=10)
+# Simple TCP Single port connection
+result = scanner._scanSinglePortConnectEX(port)
+```
+
+#### Utils Nephila Firewall Packet Fragmentation
+
+```python
+# Requires Root
+import os
+if os.geteuid != 0: return # Validate root/admin
+scanner = nephInst.firewallFrag(nephInst)
+try:
+    result = scanner.scan(
+        rHost="192.168.0.1",
+        rPort=80,
+        maxRandomDataLength=256,
+        verbose=True
+    )
+except PermissionError as E: raise Exception("Invalid Permissions!")
+```
+
+#### Utils Nephila Proxify
+
+```python
+import asyncio
+async def demoProxify():
+    proxyManager = nephInst.proxify(nephInst)
+    verifiedProxies = await proxyManager.fetchAndVerify(limit=5,proxyType='http')
+    # Types: HTTP, HTTPS, SOCKS4, SOCKS5
+    if not verifiedProxies: return # No proxies found
+    # Get random
+    randomProxy = proxyManager.getRandomProxy()
+    # Get the best
+    bestProxy = proxyManager.getProxy(strategy='best')
+    # Rotate
+    for i in range(3):
+        rotatedProxy = proxyManager.rotateProxy()
+    stats = proxyManager.getProxyStats()
+```
+
+#### Utils Nephila MITM
+
+```python
+# Requires Root 
+import threading
+if os.geteuid != 0: return # Validate root/admin
+def demoMITMCapture():
+    mitmHandler = nephInst.mitmCapture(nephInst)
+    captureThread = alien.threading.Thread(
+        target=mitmHandler.capture,
+        kwargs={'packetFilter':'tcp port 80'},
+        deamon=True
+    ) # Eventually will bring in functionality for `processHandle`
+    try:
+        captureThread.start()
+        time.sleep(10) # Capture time (10 seconds in this case)
+    finally:
+        mitmHandler.stopCapture()
+        captureThread.join(timeout=2)
+    stats = mitmHandler.getCaptureStats()
+    if stats['totalPackets'] > 0:
+        packets = mitmHandler.getCapturedPackets()
+        for packet in packets:
+            # Process each packet, in this case export
+            exportPath = "mitmExampleCapture.json"
+            mitmHandler.exportCapture(exportPath)
+```
+
+#### Utils Ping Smuggler Upgraded PSU
+
+> This is not a critical addition and more information can be learned directly from the repo [here](https://github.com/J4ck3LSyN-Gen2/pingSmugglerUpgraded/blob/main/PSU.py)
+
+
 ### Notes
 
-* **Modules Under Construction**
-    - `utils.transmission.ssh`
-    - `utils.transmission.browser`
-    - `utils.transmission.curl`
+* **MITM/NMAP/Firewall Packet Fragmentation**
+    - Now has its own operations inside of `ALNv2021.utils.nephila`
+    - Source: `https://github.com/J4ck3LSyN-Gen2/Malum/blob/main/nephila.py`
+    - Some functionality requires `root/admin` privileges.
+
+* **ICMP Ping Tunneling/Obfuscation**
+    - New operations based off PoC.
+    - Source: `https://github.com/J4ck3LSyN-Gen2/pingSmugglerUpgraded/blob/main/PSU.py`
+    - ALL functionality requires `root/admin` privileges.
 
 ### Change Log
 
@@ -2122,6 +2264,10 @@ __Date:__ `11-12-2025`
     ```
     
 More documentation (the index is growing)...
+
+__Date:__ `11-16-2025`
+
+
 
 ### Whats To Come
 

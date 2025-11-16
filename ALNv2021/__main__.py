@@ -45,7 +45,18 @@ class alienApp:
     def _initParsers(self):
         """"""
         self.parsCentral = argparse.ArgumentParser()
-        self.parsSubMode = self.parsCentral.add_subparsers("mode",required=True,help="The desired mode of operation.")
+        # Add global arguments
+        
+        # Mode
+        # subParserMode = self.parsCentral.add_subparsers(dest="mode",
+        #                                                 description="Mode of Operation.",
+        #                                                 required=True)
+        ## ATLAS
+        ## INTERPRETER
+        ## INSTALL
+        ## UTILS
+        
+
         
 
 if __name__ == "__main__":

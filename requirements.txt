@@ -6,10 +6,9 @@ wikipedia
 psutil
 cryptography
 beautifulsoup4
-donut
 pycurl
 paramiko
-dotenv
+python-dotenv
 ollama
 pillow
 nltk
@@ -20,3 +19,10 @@ aiohttp
 colorama
 pyfiglet
 alive-progress
+scapy
+fake-useragent
+dnspython
+selenium
+PyYAML
+pycryptodome
+pywin32
