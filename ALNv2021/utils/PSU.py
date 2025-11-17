@@ -424,14 +424,14 @@ class pingSmugglerUpgraded:
 
     def _logPipeBridge(self,message:str,level:int=1,**kwargs):
         """
-        A middle-man function to bridge nephila's internal logging calls
+        A middle-man function to bridge psu's internal logging calls
         to the alien.loggerHandle.logPipe when provided.
         """
-        # Map nephila's level to alien's loggingLevel
+        # Map psu's level to alien's loggingLevel
         levelMap = {0: 'debug', 1: 'info', 2: 'warning', 3: 'error', 4: 'critical'}
         alienLvl = levelMap.get(level, 'info')
         # Call the provided alien logger
-        self.alienLogPipe('nephila', message, loggingLevel=alienLvl)
+        self.alienLogPipe('psu', message, loggingLevel=alienLvl)
 def raiseBanner():
     banner = [
         '*-- PSU (Ping Smuggler Upgraded ) --*',
@@ -460,4 +460,5 @@ if __name__ == "__main__":
     colorama.init()
     raiseBanner()
     psu = pingSmugglerUpgraded(app=True)
+
     psu.run()
