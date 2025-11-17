@@ -40,11 +40,14 @@ class alienApp:
         self.parsAtlasMode = None
         self.parsUtilMode = None
         
-
+    def _mountSubparserMode(self,mode:str,parser:argparse.ArgumentParser):
+        """"""
+        pass
 
     def _initParsers(self):
         """"""
         self.parsCentral = argparse.ArgumentParser()
+        self.modeSubparser = self.parsCentral.add_subparsers("mode",dest="mode",required=True,description="Mode of Operation.")
         # Add global arguments
         
         # Mode

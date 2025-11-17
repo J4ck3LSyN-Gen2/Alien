@@ -31,6 +31,13 @@ The _Alien Framework_ is a project designed over years of my personal growth and
     - `utils.transmission` For `sockets` and `web` requests.
     - `utils.PSU` For ICMP packet smuggling (under construction).
 
+* **Browser Automation**
+    - `utils.andras`
+        - Simulated human behaviour through simulated typing, mouse movements, mispelling and delays.
+        - Record & Replay session interactions.
+        - Operated off a `inline` console.
+        - Soon to include Phishing tactics, OWASP type scanning and more...
+
 * **Compression**
     - `ZIP` & `HuffMan` Compression
 
@@ -2354,6 +2361,10 @@ def demoMITMCapture():
 > This is not a critical addition and more information can be learned directly from the repo [here](https://github.com/J4ck3LSyN-Gen2/pingSmugglerUpgraded/blob/main/PSU.py)
 
 
+#### Utils Andras Browser Automation
+
+> Still under heavy development and is best to learn more directly from the repo [here](https://github.com/J4ck3LSyN-Gen2/Malum)
+
 ### Notes
 
 * **MITM/NMAP/Firewall Packet Fragmentation**
@@ -2485,4 +2496,3 @@ __Date:__ `11-16-2025`
 ### Go Home
 
 [Index](#index)
-
