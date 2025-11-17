@@ -9,7 +9,8 @@ from . import compress # Compression algorithms
 from . import sql # SQL Database handling
 from . import PSU # pingSmugglingUpgrade (from extended context)
 from . import nephila # Different network analysis methods
-
+from . import andras # Browser Automization
 __version__ = "0.0.9"
 __description__ = "Utilities for alien."
+
 __author__ = "J4ck3LSyN"
