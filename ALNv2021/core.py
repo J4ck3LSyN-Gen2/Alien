@@ -128,117 +128,7 @@ class installHandle:
         self.confHandle = confHandle if confHandle else configHandle()
         self.variables = variables.variables(logger=self.logger)
 
-        self.config = {
-            "useLogging":False,
-            "timeout":300,
-            "sleepTimer":0.5,
-            "clientScripts":{
-                "termux":{
-                    "ncat":'ncat -l -p 9997 -k | while read cmd; do [[ -z $cmd ]] || (timeout 300 bash -c "$cmd" 2>&1; echo $?); done',
-                    "busybox":'',
-                    "python":'',
-                    "ssh":''
-                }
-            },
-            "scripts":{
-                "termux.init(step0)":[
-                    "pkg update -y && pkg upgrade -y && termux-setup-storage",
-                    "pkg install wget proot-distro -y",
-                    ""
-                ]
-            }
-        }
-        self.rHost = rHost if rHost else "0.0.0.0"
-        self.rPort = rPort if rPort else 9997
-
-        ## Setup internals
-        self.sock = transmission.sock(
-            self.process,
-            logger=self.logger,
-            confHandle=self.confHandle
-        )
-
-        self.web = transmission.web(
-            self.process,
-            confHandle=self.confHandle,
-            logger=self.logger
-        )
-
-    ## Main
-    def connectTCP(self, host: str = None, port: int = None, timeout: int = None):
-        host = host if host else self.rHost
-        port = port if port else self.rPort
-        timeout = timeout if timeout else self.config['timeout']
-        try:
-            self.connTCPSock = self.sock._socketGetType('tcp')
-            self.connTCPSock.settimeout(timeout)
-            self.connTCPSock.connect((str(host), int(port)))
-            # self.logPipe("connectTCP", f"Connected to {host}:{port}", l=1)
-            return True
-        except Exception as E:
-            eM = f"Connection failed ({host}:{port}): {str(E)}"
-            # self.logPipe("connectTCP", eM, l=2)
-            return False
-
-    def sendCommandConnTCP(self, cmd: str):
-        if not hasattr(self, 'connTCPSock') or not self.connTCPSock:
-            self.logPipe("sendCommandConnTCP", "No connection!", l=2)
-            return False
-
-        try:
-            self.connTCPSock.send(f"{str(cmd)}\n".encode("utf-8"))
-            resp = ""
-            startTime = time.time()
-            while time.time() - startTime < self.config['timeout']:
-                data = self.connTCPSock.recv(4096).decode('utf-8', errors='ignore')  # 🐛 FIXED!
-                if not data:
-                    break
-                resp += data
-                if resp.strip().endswith('\n') and any(c.isdigit() for c in resp[-10:]):
-                    break
-            
-            lines = resp.strip().split('\n')
-            exitCode = 0
-            if lines and lines[-1].isdigit():
-                exitCode = int(lines.pop())  # 🐛 FIXED: int() + default 0
-            
-            output = '\n'.join(lines)
-            return (exitCode, output)
-            
-        except Exception as E:
-            eM = f"Send failed '{cmd}': {str(E)}"
-            self.logPipe("sendCommandConnTCP", eM, l=2)
-            return False
         
-    #def runInstallConnTCP(self,installScript:str):
-    #    """"""
-    #    if not self.connTCPSock:
-            return False
-    #    if str(installScript) not in self.config['installScripts']:
-            return False
-    #    installScriptData = self.config['installScripts'][str(installScript)]
-    #    # Exec init
-    #    for cmd in installScriptData['init']:
-            print(f"Running(init): {str(cmd)}")
-            self.sendCommandConnTCP(cmd)
-            time.sleep(self.config['sleepTimer'])
-#
-    #    # Exec body
-    #    for cmd in installScriptData['body']:
-            print(f"Running(body): {str(cmd)}")
-            self.sendCommandConnTCP(cmd)
-            time.sleep(self.config['sleepTimer'])
-        
-    def closeConnTCP(self):
-        """"""
-        if self.connTCPSock:
-            try:
-                self.connTCPSock.close()
-                return True
-            except Exception as E:
-                eM = f"Unknown exception while attempting to close socket: {str(self.connTCPSock)}: {str(E)}."
-                self.logPipe("closeConnTCP",eM,l=2)
-        return False
 
     # Log pipe
     def logPipe(self,r,m,l=None,e=None,f=False):
@@ -6767,4 +6657,5 @@ class loggerHandle:
             elif levelInt==logging.CRITICAL:self.logger.critical(consoleMsg)
             if levelInt==logging.WARNING or levelInt==logging.CRITICAL:self.minimalLogger.warning(consoleMsg)
         if forcePrintToScreen:print(json.dumps(logEntry,indent=self.config.get('consoleIndentLevel')),'\n')
+
         self._flushBuffer()
