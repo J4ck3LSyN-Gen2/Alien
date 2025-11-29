@@ -25,4 +25,5 @@ dnspython
 selenium
 PyYAML
 pycryptodome
-pywin32
+aiosqlite
+aiohttp
