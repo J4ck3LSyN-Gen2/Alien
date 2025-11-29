@@ -199,7 +199,8 @@ python3 -m pip install -r requirements.txt
 * selenium
 * PyYAML
 * pycryptodome
-* pywin32
+* aiosqlite
+* aiohttp
 ```
 
 # Usage
@@ -2478,7 +2479,7 @@ __Date:__ `11-16-2025`
 
 1. Polymorphic Reverse shell/bind shell generation.
 2. Cobaltstrike / Realworld obfuscation techniques.
-3. Further ATLAS/Interpreter bevelopment.
+3. Further ATLAS/Interpreter development.
 4. Automatic updates.
 5. Alien Interpreter Online Library Repository.
 
